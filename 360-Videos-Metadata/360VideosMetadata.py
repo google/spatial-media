@@ -28,6 +28,7 @@ Injects spherical metadata into input.mp4 saving as output.mp4:
   ./spherical-metadata.py input.mp4 output.mp4
 """
 
+from optparse import OptionParser
 import os
 import re
 import StringIO
@@ -742,9 +743,75 @@ def ProcessMKV(input_file, output_file=None):
     print "Saved file settings"
     ParseSphericalMKV(output_file)
 
+def PrintCallback(option, opt_str, value, parser):
+  infile = os.path.abspath(value)
+
+  try:
+    in_fh = open(infile, "rb")
+    in_fh.close()
+  except:
+    print "Error: ", infile, " does not exist or we do not have permission"
+    return
+
+  print "Processing: ", infile, "\n"
+
+  if ".mkv" in infile:
+    ProcessMKV(infile, None)
+    return
+
+  if ".mp4" in infile or "MP4" in infile:
+    ProcessMpeg4(infile, None)
+    return
+
+  print "Unknown file type"
+  return
+
+
+
+def InjectCallback(option, opt_str, value, parser):
+  infile = os.path.abspath(value[0])
+  outfile = os.path.abspath(value[1])
+
+  if (infile == outfile) :
+    print "Input and output cannot be the same"
+    return
+
+  try:
+    in_fh = open(infile, "rb")
+    in_fh.close()
+  except:
+    print "Error: ", infile, " does not exist or we do not have permission"
+    return
+
+  print "Processing: ", infile, "\n"
+
+  if ".mkv" in infile:
+    ProcessMKV(infile, outfile)
+    return
+
+  if ".mp4" in infile or "MP4" in infile:
+    ProcessMpeg4(infile, outfile)
+    return
+
+  print "Unknown file type"
+  return
 
 def main():
-  """Main file for printing / injecting spherical metadata."""
+  """Main function for printing / injecting spherical metadata."""
+
+  PrintHelp = "Prints spherical metadata for a mp4/webm file"
+  InjectHelp = "Injects spherical metadata into a mp4/webm file"
+
+  parser = OptionParser()
+  parser.add_option("-p", "--print", action="callback", callback=PrintCallback,
+    type="string", nargs=1, help=PrintHelp)
+  parser.add_option("-i", "--inject", action="callback", type="string",
+    callback=InjectCallback, nargs=2, help=InjectHelp)
+  parser.parse_args()
+
+  return;
+
+
   if len(sys.argv) < 2:
     print "usage: ./metadata.py <input>"
     print "\t Prints <input> spherical metadata settings\n"
