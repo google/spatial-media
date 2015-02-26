@@ -1,8 +1,5 @@
-# spherical-metadata.py
-This is a simple python command line tool for manipulating spherical/360 metadata in mp4 and mkv files. This can be used to either validate the 360 metadata in a tagged spherical video or insert the metadata into an existing file. Support of .mkv files requires ffmpeg to be install in the system.
-
-## Installation
-Support for .mkv files requires ffmpeg to be installed.
+# 360VideosMetadata.py
+This is a simple python command line tool for manipulating spherical/360 metadata in mp4 and mkv files. This can be used to either validate the 360 metadata in a tagged spherical video or insert the metadata into an existing file. Support of .mkv files requires ffmpeg to be installed on the system.
 
 ## Usage
     ./360VideosMetadata.py -h
