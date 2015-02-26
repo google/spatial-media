@@ -58,7 +58,7 @@ tag_stbl = "stbl"
 tag_uuid = "uuid"
 
 containers = [tag_moov, tag_udta, tag_trak,
-              tag_mdia, tag_minf, tag_stbl, tag_meta]
+              tag_mdia, tag_minf, tag_stbl]
 
 additional_data_containers = dict()
 additional_data_containers[tag_meta] = 4
