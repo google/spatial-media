@@ -17,15 +17,7 @@
 
 """Spherical Metadata Python Tool
 
-Tool for examining and injecting spherical metadata into mkv/mp4 files.
-
-Usage example:
-
-Prints input.mp4 metadata:
-  ./spherical-metadata.py input.mp4
-
-Injects spherical metadata into input.mp4 saving as output.mp4:
-  ./spherical-metadata.py input.mp4 output.mp4
+Tool for examining and injecting spherical metadata into MKV/MP4 files.
 """
 
 from optparse import OptionParser
