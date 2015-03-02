@@ -743,8 +743,8 @@ def ProcessMKV(input_file, output_file=None):
     print "Saved file settings"
     ParseSphericalMKV(output_file)
 
-def PrintCallback(option, opt_str, value, parser):
-  infile = os.path.abspath(value)
+def PrintMetadata(src):
+  infile = os.path.abspath(src)
 
   try:
     in_fh = open(infile, "rb")
@@ -768,9 +768,9 @@ def PrintCallback(option, opt_str, value, parser):
 
 
 
-def InjectCallback(option, opt_str, value, parser):
-  infile = os.path.abspath(value[0])
-  outfile = os.path.abspath(value[1])
+def InjectMetadata(src, dest):
+  infile = os.path.abspath(src)
+  outfile = os.path.abspath(dest)
 
   if (infile == outfile) :
     print "Input and output cannot be the same"
@@ -799,49 +799,27 @@ def InjectCallback(option, opt_str, value, parser):
 def main():
   """Main function for printing / injecting spherical metadata."""
 
-  PrintHelp = "Prints spherical metadata for a mp4/webm file"
-  InjectHelp = "Injects spherical metadata into a mp4/webm file"
+  parser = OptionParser(usage="%prog [options] [files...]\n\n"
+                              "By default prints out spherical metadata from specified files.")
+  parser.add_option("-i", "--inject",
+                    action="store_true",
+                    help="injects spherical metadata into a MP4/WebM file, "
+                         "saving the result to a new file")
+  (opts, args) = parser.parse_args()
 
-  parser = OptionParser()
-  parser.add_option("-p", "--print", action="callback", callback=PrintCallback,
-    type="string", nargs=1, help=PrintHelp)
-  parser.add_option("-i", "--inject", action="callback", type="string",
-    callback=InjectCallback, nargs=2, help=InjectHelp)
-  parser.parse_args()
-
-  return;
-
-
-  if len(sys.argv) < 2:
-    print "usage: ./metadata.py <input>"
-    print "\t Prints <input> spherical metadata settings\n"
-    print "usage: ./metadata.py <input> <output>"
-    print "\t Adds spherical metadata to <input> saving to <output>"
-    exit(0)
-
-  target = sys.argv[1]
-  outfile = None
-
-  if len(sys.argv) > 2:
-    outfile = sys.argv[2]
-
-  in_fh = open(target, "rb")
-  if in_fh:
-    in_fh.close()
-  else:
-    print "Error: ", target, " does not exist or we do not have permission"
-
-  print "Processing: ", sys.argv[1], "\n"
-
-  if ".mkv" in target:
-    ProcessMKV(target, outfile)
+  if opts.inject:
+    if len(args) != 2:
+      print "Injecting metadata requires both a source and destination."
+      return
+    InjectMetadata(args[0], args[1])
     return
 
-  if ".mp4" in target or "MP4" in target:
-    ProcessMpeg4(target, outfile)
+  if len(args) > 0:
+    for src in args:
+      PrintMetadata(src)
     return
 
-  print "Unknown file type"
+  parser.print_help()
   return
 
 
