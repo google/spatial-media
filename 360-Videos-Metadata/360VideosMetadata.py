@@ -769,7 +769,7 @@ def PrintMetadata(src):
     print "Processing: ", infile, "\n"
 
     if (os.path.splitext(infile)[1].lower() == ".webm" or
-        os.path.splitext(infile)[1].lower() == ".mkv"):
+       os.path.splitext(infile)[1].lower() == ".mkv"):
         ProcessMKV(infile, None)
         return
 
@@ -799,7 +799,7 @@ def InjectMetadata(src, dest):
     print "Processing: ", infile, "\n"
 
     if (os.path.splitext(infile)[1].lower() == ".webm" or
-        os.path.splitext(infile)[1].lower() == ".mkv"):
+       os.path.splitext(infile)[1].lower() == ".mkv"):
         ProcessMKV(infile, outfile)
         return
 
