@@ -30,7 +30,7 @@ import sys
 import xml.etree
 import xml.etree.ElementTree
 
-## Leaf types ##
+# Leaf types.
 tag_stco = "stco"
 tag_co64 = "co64"
 tag_free = "free"
@@ -39,7 +39,7 @@ tag_xml = "xml "
 tag_hdlr = "hdlr"
 tag_ftyp = "ftyp"
 
-## Container types ##
+# Container types.
 tag_moov = "moov"
 tag_udta = "udta"
 tag_meta = "meta"
@@ -58,7 +58,7 @@ additional_data_containers[tag_meta] = 4
 spherical_uuid_id = (
     "\xff\xcc\x82\x63\xf8\x55\x4a\x93\x88\x14\x58\x7a\x02\x52\x1f\xdd")
 
-## XML Contents ##
+# XML contents.
 rdf_prefix = " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
 
 spherical_xml = (
@@ -70,7 +70,8 @@ spherical_xml = (
     "  <GSpherical:Stitched>true</GSpherical:Stitched>\n"
     "  <GSpherical:StitchingSoftware>Spherical Metadata Tool"
     "</GSpherical:StitchingSoftware>\n"
-    "  <GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>\n"
+    "  <GSpherical:ProjectionType>equirectangular"
+    "</GSpherical:ProjectionType>\n"
     "</rdf:SphericalVideo>")
 
 spherical_tags_list = [
@@ -138,7 +139,8 @@ class container_atom(atom):
         """Recomputes the atom size and recurses on contents."""
         self.content_size = 0
         for element in self.contents:
-            if isinstance(element, container_atom): element.resize()
+            if isinstance(element, container_atom):
+                element.resize()
             self.content_size += element.size()
 
     def print_structure(self, indent=""):
@@ -166,7 +168,8 @@ class container_atom(atom):
             element.print_structure(next_indent)
 
     def remove(self, tag):
-        """Removes a type of tag structure, recursively removing from containers."""
+        """Removes a type of tag structure, recursively removing from
+        containers."""
         new_contents = []
         self.content_size = 0
         for element in self.contents:
@@ -189,8 +192,10 @@ class container_atom(atom):
         merged_index = -1
         for content in self.contents:
             merged_index += 1
-            if isinstance(content, leaf_atom): continue
-            if not (content.name == element.name): continue
+            if isinstance(content, leaf_atom):
+                continue
+            if not (content.name == element.name):
+                continue
             merged = True
             added_size = content.merge(element)
             break
@@ -208,7 +213,8 @@ class container_atom(atom):
             index = free_index
             self.contents.insert(free_index, element)
 
-        if free_data and index <= free_index and free_data.content_size > added_size:
+        if (free_data and index <= free_index and
+                free_data.content_size > added_size):
             free_data.content_size -= added_size
             return 0
 
@@ -232,7 +238,8 @@ class container_atom(atom):
         return added_size
 
     def save(self, in_fh, out_fh, delta):
-        """Saves atom structure to out_fh reading uncached content from in_fh.
+        """Saves atom structure to out_fh reading uncached content from
+        in_fh.
 
         Args:
           in_fh: file handle, source of uncached file contents.
@@ -332,7 +339,8 @@ class leaf_atom(atom):
         self.additional_data = ""
 
     def set(self, new_contents):
-        """Sets the atom contents. This can be used to change an atom's contents"""
+        """Sets the atom contents. This can be used to change an atom's
+        contents"""
         contents = new_contents
         content_size = len(contents)
 
@@ -355,7 +363,8 @@ class leaf_atom(atom):
 
         out_fh.write(self.additional_data)
 
-        if self.content_start: in_fh.seek(self.content_start)
+        if self.content_start:
+            in_fh.seek(self.content_start)
 
         if (self.name == tag_stco):
             stco_copy(in_fh, out_fh, self, delta)
@@ -392,7 +401,8 @@ class mpeg4_container(container_atom):
         size = len(self.contents)
         for i in range(size):
             next_indent = " ├──"
-            if i == (size - 1): next_indent = " └──"
+            if i == (size - 1):
+                next_indent = " └──"
 
             self.contents[i].print_structure(next_indent)
 
@@ -425,7 +435,8 @@ def parse_header(fh, position):
 
     Returns:
       name: header name / type.
-      header_size: size of header. This is either 4 or 8 bytes for 32 or 64 bit.
+      header_size: size of header. This is either 4 or 8 bytes for 32 or
+      64 bit.
       content_size: Total content size.
     """
     fh.seek(position)
@@ -459,10 +470,14 @@ def load_mpeg4(fh, position, size):
     loaded_mpeg4.contents = process_container(fh, position, size)
 
     for element in loaded_mpeg4.contents:
-        if (element.name == "moov"): loaded_mpeg4.moov_atom = element
-        if (element.name == "free"): loaded_mpeg4.free_atom = element
-        if (element.name == "mdat"): loaded_mpeg4.mdat_atom = element
-        if (element.name == "ftyp"): loaded_mpeg4.ftyp_atom = element
+        if (element.name == "moov"):
+            loaded_mpeg4.moov_atom = element
+        if (element.name == "free"):
+            loaded_mpeg4.free_atom = element
+        if (element.name == "mdat"):
+            loaded_mpeg4.mdat_atom = element
+        if (element.name == "ftyp"):
+            loaded_mpeg4.ftyp_atom = element
 
     assert(loaded_mpeg4.moov_atom)
     loaded_mpeg4.mdat_position = loaded_mpeg4.mdat_atom.position
@@ -539,7 +554,8 @@ def mpeg4_add_spherical(mpeg4_file, in_fh):
     """Adds a spherical uuid atom to an mpeg4 file for all video tracks.
 
     Args:
-      mpeg4_file: mpeg4_container, Mpeg4 file structure to add spherical metadata.
+      mpeg4_file: mpeg4_container, Mpeg4 file structure to add spherical
+      metadata.
       in_fh: file handle, Source for uncached file contents.
     """
     for element in mpeg4_file.moov_atom.contents:
@@ -547,9 +563,11 @@ def mpeg4_add_spherical(mpeg4_file, in_fh):
             added = False
             element.remove("uuid")
             for sub_element in element.contents:
-                if sub_element.name != "mdia": continue
-                for mdia_sub_element  in sub_element.contents:
-                    if mdia_sub_element.name != "hdlr": continue
+                if sub_element.name != "mdia":
+                    continue
+                for mdia_sub_element in sub_element.contents:
+                    if mdia_sub_element.name != "hdlr":
+                        continue
                     position = mdia_sub_element.content_start + 8
                     in_fh.seek(position)
                     if (in_fh.read(4) == "vide"):
@@ -608,7 +626,8 @@ def ParseSphericalMKV(file_name):
     lines = sub_err.split("\n")
     xml_contents = []
 
-    if lines[0].find(":") == -1: return
+    if lines[0].find(":") == -1:
+        return
 
     xml_contents.append(lines[0][lines[0].index(":") + 2:])
     for line in lines[1:]:
@@ -689,8 +708,9 @@ def ParseSphericalMpeg4(mpeg4_file, fh):
 
 def ProcessMpeg4(input_file, output_file=None):
     in_fh = open(input_file, "rb")
-    if in_fh == None:
-        print "File: \"", input_file, "\" does not exist or do not have permission."
+    if in_fh is None:
+        print ("File: \"", input_file, "\" does not exist or do not have "
+               "permission.")
         return
 
     position = 0
@@ -726,14 +746,15 @@ def ProcessMKV(input_file, output_file=None):
     else:
         process = subprocess.Popen(
             ["ffmpeg", "-i", input_file, "-metadata:s:v",
-             'spherical-video=\"' + spherical_xml + '\"', "-c:v", "copy", "-c:a",
-             "copy", output_file], stderr=subprocess.PIPE,
+             'spherical-video=\"' + spherical_xml + '\"', "-c:v", "copy",
+             "-c:a", "copy", output_file], stderr=subprocess.PIPE,
             stdout=subprocess.PIPE)
         print "Press y <enter> to confirm overwrite"
         process.wait()
         stdout, stderr = process.communicate()
         print "Saved file settings"
         ParseSphericalMKV(output_file)
+
 
 def PrintMetadata(src):
     infile = os.path.abspath(src)
@@ -759,12 +780,11 @@ def PrintMetadata(src):
     return
 
 
-
 def InjectMetadata(src, dest):
     infile = os.path.abspath(src)
     outfile = os.path.abspath(dest)
 
-    if (infile == outfile) :
+    if (infile == outfile):
         print "Input and output cannot be the same"
         return
 
@@ -788,11 +808,13 @@ def InjectMetadata(src, dest):
     print "Unknown file type"
     return
 
+
 def main():
     """Main function for printing / injecting spherical metadata."""
 
     parser = OptionParser(usage="%prog [options] [files...]\n\n"
-                                "By default prints out spherical metadata from specified files.")
+                                "By default prints out spherical metadata from"
+                                "specified files.")
     parser.add_option("-i", "--inject",
                       action="store_true",
                       help="injects spherical metadata into a MP4/WebM file, "
