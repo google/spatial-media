@@ -768,7 +768,7 @@ def PrintMetadata(src):
 
     print "Processing: ", infile, "\n"
 
-    if ".mkv" in infile:
+    if ".mkv" in infile or ".webm" in infile:
         ProcessMKV(infile, None)
         return
 
@@ -797,7 +797,7 @@ def InjectMetadata(src, dest):
 
     print "Processing: ", infile, "\n"
 
-    if ".mkv" in infile:
+    if ".mkv" in infile or ".webm" in infile:
         ProcessMKV(infile, outfile)
         return
 
