@@ -768,11 +768,11 @@ def PrintMetadata(src):
 
     print "Processing: ", infile, "\n"
 
-    if ".mkv" in infile:
+    if (os.path.splitext(infile)[1].lower() in [".webm", ".mkv"]):
         ProcessMKV(infile, None)
         return
 
-    if ".mp4" in infile or "MP4" in infile:
+    if (os.path.splitext(infile)[1].lower() == ".mp4"):
         ProcessMpeg4(infile, None)
         return
 
@@ -797,11 +797,11 @@ def InjectMetadata(src, dest):
 
     print "Processing: ", infile, "\n"
 
-    if ".mkv" in infile:
+    if (os.path.splitext(infile)[1].lower() in [ ".webm", ".mkv"]):
         ProcessMKV(infile, outfile)
         return
 
-    if ".mp4" in infile or "MP4" in infile:
+    if (os.path.splitext(infile)[1].lower() == ".mp4"):
         ProcessMpeg4(infile, outfile)
         return
 
