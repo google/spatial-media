@@ -52,9 +52,6 @@ tag_uuid = "uuid"
 containers = [tag_moov, tag_udta, tag_trak,
               tag_mdia, tag_minf, tag_stbl]
 
-additional_data_containers = dict()
-additional_data_containers[tag_meta] = 4
-
 spherical_uuid_id = (
     "\xff\xcc\x82\x63\xf8\x55\x4a\x93\x88\x14\x58\x7a\x02\x52\x1f\xdd")
 
@@ -99,14 +96,108 @@ for tag in spherical_tags_list:
 
 
 class atom:
-    """MPEG4 atom contents /behaviour true for all atoms."""
+    """MPEG4 atom contents and behaviour true for all atoms."""
 
     def __init__(self):
         self.name = ""
         self.position = 0
         self.header_size = 0
         self.content_size = 0
-        self.additional_data = ""
+        self.contents = None
+
+    def content_start(self):
+        return self.position + self.header_size
+
+    @staticmethod
+    def load(fh, position=None, end=None):
+        """Loads the atom located at a position in a mp4 file.
+
+        Args:
+          fh: file handle, input file handle.
+          position: int or None, current file position.
+
+        Returns:
+          atom: atom, atom from loaded file location or None.
+        """
+        if (position is None):
+            position = fh.tell()
+
+        fh.seek(position)
+        header_size = 8
+        size = struct.unpack(">I", fh.read(4))[0]
+        name = fh.read(4)
+
+        if (name in containers):
+            return container_atom.load(fh, position, end)
+
+        if (size == 1):
+            size = struct.unpack(">Q", fh.read(8))[0]
+            header_size = 16
+
+        if (size < 8):
+            print "Error, invalid size in ", name, " at ", position
+            return None
+
+        if (position + size > end):
+            print ("Error: Leaf atom size exceeds bounds.")
+            return None
+
+        new_atom = atom()
+        new_atom.name = name
+        new_atom.position = position
+        new_atom.header_size = header_size
+        new_atom.content_size = size - header_size
+        new_atom.contents = None
+
+        return new_atom
+
+    @staticmethod
+    def load_multiple(fh, position=None, end=None):
+        loaded = list()
+        while (position < end):
+            new_atom = atom.load(fh, position, end)
+            if (new_atom is None):
+                print ("Error, failed to load atom.")
+                return None
+            loaded.append(new_atom)
+            position = new_atom.position + new_atom.size()
+
+        return loaded
+
+    def save(self, in_fh, out_fh, delta):
+        """Save an atoms contents prioritizing set contents and specialized
+        beahviour for stco/co64 atoms.
+
+        Args:
+          in_fh: file handle, source to read atom contents from.
+          out_fh: file handle, destination for written atom contents.
+          delta: int, index update amount.
+        """
+        if (self.header_size == 16):
+            out_fh.write(struct.pack(">I", 1))
+            out_fh.write(self.name)
+            out_fh.write(struct.pack(">Q", self.size()))
+        elif(self.header_size == 8):
+            out_fh.write(struct.pack(">I", self.size()))
+            out_fh.write(self.name)
+
+        if self.content_start():
+            in_fh.seek(self.content_start())
+
+        if (self.name == tag_stco):
+            stco_copy(in_fh, out_fh, self, delta)
+        elif (self.name == tag_co64):
+            co64_copy(in_fh, out_fh, self, delta)
+        elif (self.contents is not None):
+            out_fh.write(self.contents)
+        else:
+            tag_copy(in_fh, out_fh, self.content_size)
+
+    def set(self, new_contents):
+        """Sets the atom contents. This can be used to change an atom's
+        contents"""
+        contents = new_contents
+        content_size = len(contents)
 
     def size(self):
         """Total size of a atom.
@@ -114,14 +205,13 @@ class atom:
         Returns:
           Int, total size in bytes of the atom.
         """
-        return self.header_size + self.content_size + len(self.additional_data)
+        return self.header_size + self.content_size
 
     def print_structure(self, indent=""):
         """Prints the atom structure."""
         size1 = self.header_size
-        size2 = len(self.additional_data)
-        size3 = self.content_size
-        print indent, self.name, " [", size1, ", ", size2, ", ", size3, " ]"
+        size2 = self.content_size
+        print indent, self.name, " [", size1, ", ", size2, " ]"
 
 
 class container_atom(atom):
@@ -133,7 +223,43 @@ class container_atom(atom):
         self.header_size = 0
         self.content_size = 0
         self.contents = list()
-        self.additional_data = ""
+
+    @staticmethod
+    def load(fh, position=None, end=None):
+        if (position is None):
+            position = fh.tell()
+
+        fh.seek(position)
+        header_size = 8
+        size = struct.unpack(">I", fh.read(4))[0]
+        name = fh.read(4)
+
+        assert(name in containers)
+
+        if (size == 1):
+            size = struct.unpack(">Q", fh.read(8))[0]
+            header_size = 16
+
+        if (size < 8):
+            print "Error, invalid size in ", name, " at ", position
+            return None
+
+        if (position + size > end):
+            print ("Error: Container atom size exceeds bounds.")
+            return None
+
+        new_atom = container_atom()
+        new_atom.name = name
+        new_atom.position = position
+        new_atom.header_size = header_size
+        new_atom.content_size = size - header_size
+        new_atom.contents = atom.load_multiple(
+            fh, position + header_size, position + size)
+
+        if (new_atom.contents is None):
+            return None
+
+        return new_atom
 
     def resize(self):
         """Recomputes the atom size and recurses on contents."""
@@ -146,9 +272,8 @@ class container_atom(atom):
     def print_structure(self, indent=""):
         """Prints the atom structure and recurses on contents."""
         size1 = self.header_size
-        size2 = len(self.additional_data)
-        size3 = self.content_size
-        print indent, self.name, " [", size1, ", ", size2, ", ", size3, " ]"
+        size2 = self.content_size
+        print indent, self.name, " [", size1, ", ", size2, " ]"
 
         size = len(self.contents)
         this_indent = indent
@@ -168,8 +293,7 @@ class container_atom(atom):
             element.print_structure(next_indent)
 
     def remove(self, tag):
-        """Removes a type of tag structure, recursively removing from
-        containers."""
+        """Removes a tag recursively from all containers."""
         new_contents = []
         self.content_size = 0
         for element in self.contents:
@@ -186,42 +310,15 @@ class container_atom(atom):
         Returns:
           Int, increased size of container.
         """
-        added_size = element.size()
-
-        merged = False
-        merged_index = -1
         for content in self.contents:
-            merged_index += 1
-            if isinstance(content, leaf_atom):
-                continue
-            if not (content.name == element.name):
-                continue
-            merged = True
-            added_size = content.merge(element)
-            break
+            if (content.name == element.name):
+                if (isinstance(content, container_leaf)):
+                    return content.merge(element)
+                print "Error, cannot merge leafs."
+                return False
 
-        free_index = 0
-        free_data = None
-        for content in self.contents:
-            if content.name == tag_free:
-                free_data = content
-                break
-            free_index = free_index + 1
-
-        index = merged_index
-        if not merged:
-            index = free_index
-            self.contents.insert(free_index, element)
-
-        if (free_data and index <= free_index and
-                free_data.content_size > added_size):
-            free_data.content_size -= added_size
-            return 0
-
-        self.content_size = 0
-        for self_element in self.contents:
-            self.content_size += self_element.size()
-        return added_size
+        self.contents.append(element)
+        return True
 
     def merge(self, element):
         """Merges structure with container.
@@ -231,11 +328,11 @@ class container_atom(atom):
         """
         assert(self.name == element.name)
         assert(isinstance(element, container_atom))
-        added_size = 0
         for sub_element in element.contents:
-            added_size += self.add(sub_element)
+            if not self.add(sub_element):
+                return False
 
-        return added_size
+        return True
 
     def save(self, in_fh, out_fh, delta):
         """Saves atom structure to out_fh reading uncached content from
@@ -253,8 +350,6 @@ class container_atom(atom):
         elif(self.header_size == 8):
             out_fh.write(struct.pack(">I", self.size()))
             out_fh.write(self.name)
-
-        out_fh.write(self.additional_data)
 
         for element in self.contents:
             element.save(in_fh, out_fh, delta)
@@ -278,14 +373,14 @@ def index_copy(in_fh, out_fh, atom, mode, mode_length, delta=0):
     Args:
       in_fh: file handle, source to read index table from.
       out_fh: file handle, destination for index file.
-      atom: leaf_atom, stco/co64 atom to copy.
+      atom: atom, stco/co64 atom to copy.
       mode: string, bit packing mode for index entries.
       mode_length: int, number of bytes for index entires.
       delta: int, offset change for index entries.
     """
     fh = in_fh
     if not atom.contents:
-        fh.seek(atom.content_start)
+        fh.seek(atom.content_start())
     else:
         fh = StringIO.StringIO(atom.contents)
 
@@ -308,7 +403,7 @@ def stco_copy(in_fh, out_fh, atom, delta=0):
     Args:
       in_fh: file handle, source to read index table from.
       out_fh: file handle, destination for index file.
-      atom: leaf_atom, stco atom to copy.
+      atom: atom, stco atom to copy.
       delta: int, offset change for index entries.
     """
     index_copy(in_fh, out_fh, atom, ">I", 4, delta)
@@ -320,63 +415,13 @@ def co64_copy(in_fh, out_fh, atom, delta=0):
     Args:
       in_fh: file handle, source to read index table from.
       out_fh: file handle, destination for index file.
-      atom: leaf_atom, co64 atom to copy.
+      atom: atom, co64 atom to copy.
       delta: int, offset change for index entries.
     """
     index_copy(in_fh, out_fh, atom, ">Q", 8, delta)
 
 
-class leaf_atom(atom):
-    """MPEG4 leaf atom contents / behaviour."""
-
-    def __init__(self):
-        self.name = ""
-        self.position = 0
-        self.header_size = 0
-        self.content_start = None
-        self.content_size = 0
-        self.contents = None
-        self.additional_data = ""
-
-    def set(self, new_contents):
-        """Sets the atom contents. This can be used to change an atom's
-        contents"""
-        contents = new_contents
-        content_size = len(contents)
-
-    def save(self, in_fh, out_fh, delta):
-        """Save an atoms contents prioritizing set contents and specialized
-        beahviour for stco/co64 atoms.
-
-        Args:
-          in_fh: file handle, source to read atom contents from.
-          out_fh: file handle, destination for written atom contents.
-          delta: int, index update amount.
-        """
-        if (self.header_size == 16):
-            out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name)
-            out_fh.write(struct.pack(">Q", self.size()))
-        elif(self.header_size == 8):
-            out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name)
-
-        out_fh.write(self.additional_data)
-
-        if self.content_start:
-            in_fh.seek(self.content_start)
-
-        if (self.name == tag_stco):
-            stco_copy(in_fh, out_fh, self, delta)
-        elif (self.name == tag_co64):
-            co64_copy(in_fh, out_fh, self, delta)
-        elif (self.contents):
-            out_fh.write(self.contents)
-        else:
-            tag_copy(in_fh, out_fh, self.content_size)
-
-
-class mpeg4_container(container_atom):
+class mpeg4(container_atom):
     """Specialized behaviour for the root mpeg4 container"""
 
     def __init__(self):
@@ -388,6 +433,58 @@ class mpeg4_container(container_atom):
         self.mdat_atom = None
         self.ftyp_atom = None
         self.mdat_position = None
+
+    @staticmethod
+    def load(fh, position, size):
+        """Load the mpeg4 file structure of a file.
+
+        Args:
+          fh: file handle, input file handle.
+          position: int, current file position.
+          size: int, maximum size. This is used to ensure correct atom sizes.
+
+        return:
+          mpeg4, the loaded mpeg4 structure.
+        """
+        contents = atom.load_multiple(fh, position, size)
+
+        if (contents is None):
+            print "Error, failed to load .mp4 file."
+            return None
+
+        if (len(contents) == 0):
+            print ("Error, no atoms found.")
+            return None
+
+        loaded_mpeg4 = mpeg4()
+        loaded_mpeg4.contents = contents
+
+        for element in loaded_mpeg4.contents:
+            if (element.name == "moov"):
+                loaded_mpeg4.moov_atom = element
+            if (element.name == "free"):
+                loaded_mpeg4.free_atom = element
+            if (element.name == "mdat"):
+                loaded_mpeg4.mdat_atom = element
+            if (element.name == "ftyp"):
+                loaded_mpeg4.ftyp_atom = element
+
+        if (loaded_mpeg4.moov_atom is None):
+            print ("Error, file does not contain moov atom.")
+            return None
+
+        if (loaded_mpeg4.mdat_atom is None):
+            print ("Error, file does not contain mdat atom.")
+            return None
+
+        loaded_mpeg4.mdat_position = loaded_mpeg4.mdat_atom.position
+        loaded_mpeg4.mdat_position += loaded_mpeg4.mdat_atom.header_size
+
+        loaded_mpeg4.content_size = 0
+        for element in loaded_mpeg4.contents:
+            loaded_mpeg4.content_size += element.size()
+
+        return loaded_mpeg4
 
     def merge(self, element):
         """Mpeg4 containers do not support merging."""
@@ -413,6 +510,7 @@ class mpeg4_container(container_atom):
           in_fh: file handle, source file handle for uncached contents.
           out_fh: file handle, destination file hand for saved file.
         """
+        self.resize()
         new_position = 0
         for element in self.contents:
             if element.name == tag_mdat:
@@ -425,127 +523,20 @@ class mpeg4_container(container_atom):
             element.save(in_fh, out_fh, delta)
 
 
-def parse_header(fh, position):
-    """Reads the header of an atom returning the name, header_size,
-    and content_size.
-
-    Args:
-      fh: file handle, input file handle.
-      position: int, current file position.
-
-    Returns:
-      name: header name / type.
-      header_size: size of header. This is either 4 or 8 bytes for 32 or
-      64 bit.
-      content_size: Total content size.
-    """
-    fh.seek(position)
-    header_size = 8
-    total_size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
-    if (total_size <= 0):
-        print "File error content size <= 0:", total_size, position
-        total_size = header_size
-        exit(0)
-    if (total_size == 1):
-        header_size = 16
-        total_size = struct.unpack(">Q", fh.read(8))[0]
-
-    content_size = total_size - header_size
-    return (name, header_size, content_size)
-
-
-def load_mpeg4(fh, position, size):
-    """Load the mpeg4 file structure of a file.
-
-    Args:
-      fh: file handle, input file handle.
-      position: int, current file position.
-      size: int, maximum size. This is used to ensure correct atom sizes.
-
-    return:
-      mpeg4_container, the loaded mpeg4 structure.
-    """
-    loaded_mpeg4 = mpeg4_container()
-    loaded_mpeg4.contents = process_container(fh, position, size)
-
-    for element in loaded_mpeg4.contents:
-        if (element.name == "moov"):
-            loaded_mpeg4.moov_atom = element
-        if (element.name == "free"):
-            loaded_mpeg4.free_atom = element
-        if (element.name == "mdat"):
-            loaded_mpeg4.mdat_atom = element
-        if (element.name == "ftyp"):
-            loaded_mpeg4.ftyp_atom = element
-
-    assert(loaded_mpeg4.moov_atom)
-    loaded_mpeg4.mdat_position = loaded_mpeg4.mdat_atom.position
-    loaded_mpeg4.mdat_position += loaded_mpeg4.mdat_atom.header_size
-
-    loaded_mpeg4.content_size = 0
-    for element in loaded_mpeg4.contents:
-        loaded_mpeg4.content_size += element.size()
-
-    return loaded_mpeg4
-
-
-def process_container(fh, position, size):
-    """Processes list of mpeg4 atoms within a file block.
-
-    Args:
-      fh: file handle, input file handle.
-      position: int, current file position.
-      size: int, size of the consecutive block.
-    """
-    end = position + size
-    contents = []
-    while (position < end):
-        (name, header_size, content_size) = parse_header(fh, position)
-        obj = leaf_atom()
-        if (name in containers):
-            obj = container_atom()
-            new_position = position + header_size
-            if (name in additional_data_containers):
-                additional_data_size = additional_data_containers[name]
-                obj.additional_data = fh.read(additional_data_size)
-                content_size -= additional_data_size
-                new_position += additional_data_size
-            obj.contents = process_container(fh, new_position, content_size)
-            verify_size = 0
-            for e in obj.contents:
-                verify_size += e.size()
-            if (verify_size != content_size):
-                print "Error, content size does not add up"
-                exit(1)
-
-        obj.name = name
-        obj.position = position
-        obj.content_start = position + header_size
-        obj.header_size = header_size
-        obj.content_size = content_size
-
-        contents.append(obj)
-
-        position = position + obj.size()
-    return contents
-
-
 def spherical_uuid():
     """Constructs a uuid containing spherical metadata.
 
     Returns:
-      uuid_leaf: a leaf_atom containing spherical metadata.
+      uuid_leaf: a atom containing spherical metadata.
     """
-    uuid_leaf = leaf_atom()
+    uuid_leaf = atom()
     assert(len(spherical_uuid_id) == 16)
     uuid_leaf.name = tag_uuid
-    uuid_leaf.additional_data = spherical_uuid_id
     uuid_leaf.header_size = 8
     uuid_leaf.content_size = 0
 
-    uuid_leaf.contents = spherical_xml
-    uuid_leaf.content_size = len(spherical_xml)
+    uuid_leaf.contents = spherical_uuid_id + spherical_xml
+    uuid_leaf.content_size = len(uuid_leaf.contents)
 
     return uuid_leaf
 
@@ -554,7 +545,7 @@ def mpeg4_add_spherical(mpeg4_file, in_fh):
     """Adds a spherical uuid atom to an mpeg4 file for all video tracks.
 
     Args:
-      mpeg4_file: mpeg4_container, Mpeg4 file structure to add spherical
+      mpeg4_file: mpeg4, Mpeg4 file structure to add spherical
       metadata.
       in_fh: file handle, Source for uncached file contents.
     """
@@ -568,17 +559,19 @@ def mpeg4_add_spherical(mpeg4_file, in_fh):
                 for mdia_sub_element in sub_element.contents:
                     if mdia_sub_element.name != "hdlr":
                         continue
-                    position = mdia_sub_element.content_start + 8
+                    position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
                     if (in_fh.read(4) == "vide"):
                         added = True
                         break
 
                 if added:
-                    element.add(spherical_uuid())
+                    if not element.add(spherical_uuid()):
+                        return False
                     break
 
     mpeg4_file.resize()
+    return True
 
 
 def ffmpeg():
@@ -685,7 +678,7 @@ def ParseSphericalMpeg4(mpeg4_file, fh):
     """Prints spherical metadata for a loaded mpeg4 file.
 
     Args:
-      mpeg4_file: mpeg4_container, loaded mpeg4 file contents.
+      mpeg4_file: mpeg4, loaded mpeg4 file contents.
       fh: file handle, file handle for uncached file contents.
     """
     track_num = 0
@@ -695,13 +688,16 @@ def ParseSphericalMpeg4(mpeg4_file, fh):
             track_num += 1
             for sub_element in element.contents:
                 if sub_element.name == tag_uuid:
-                    sub_element_id = sub_element.additional_data
-                    if not sub_element.contents:
-                        fh.seek(sub_element.content_start)
+                    if sub_element.contents is not None:
+                        sub_element_id = sub_element.contents[:16]
+                    else:
+                        fh.seek(sub_element.content_start())
                         sub_element_id = fh.read(16)
+
                     if sub_element_id == spherical_uuid_id:
-                        contents = sub_element.contents
-                        if not contents:
+                        if sub_element.contents is not None:
+                            contents = sub_element.contents[16:]
+                        else:
                             contents = fh.read(sub_element.content_size - 16)
                         ParseSphericalXML(contents)
 
@@ -717,14 +713,18 @@ def ProcessMpeg4(input_file, output_file=None):
     in_fh.seek(0, 2)
     total_size = in_fh.tell()
 
-    mpeg4_file = load_mpeg4(in_fh, 0, total_size)
+    mpeg4_file = mpeg4.load(in_fh, 0, total_size)
+    if (mpeg4_file is None):
+        return
 
     if not output_file:
         print "Loaded file settings"
         ParseSphericalMpeg4(mpeg4_file, in_fh)
         return
 
-    mpeg4_add_spherical(mpeg4_file, in_fh)
+    if not mpeg4_add_spherical(mpeg4_file, in_fh):
+        print "Failed to insert spherical data"
+        return
 
     print "Saved file settings"
     ParseSphericalMpeg4(mpeg4_file, in_fh)
