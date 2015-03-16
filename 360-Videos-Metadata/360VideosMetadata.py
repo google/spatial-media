@@ -363,6 +363,14 @@ def tag_copy(in_fh, out_fh, size):
       out_fh: file handle, destination for saved file.
       size: int, amount of data to copy.
     """
+
+    # Large sizes must be incremental on windows.
+    max_size = 64 * 1024 * 1024
+    while (size > max_size):
+      contents = in_fh.read(max_size)
+      out_fh.write(contents)
+      size = size - max_size
+
     contents = in_fh.read(size)
     out_fh.write(contents)
 
