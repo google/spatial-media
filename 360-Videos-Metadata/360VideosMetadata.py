@@ -363,6 +363,15 @@ def tag_copy(in_fh, out_fh, size):
       out_fh: file handle, destination for saved file.
       size: int, amount of data to copy.
     """
+
+    # On 32-bit systems reading / writing is limited to 2GB chunks.
+    # To prevent overflow, read/write 64 MB chunks.
+    block_size = 64 * 1024 * 1024
+    while (size > block_size):
+      contents = in_fh.read(block_size)
+      out_fh.write(contents)
+      size = size - block_size
+
     contents = in_fh.read(size)
     out_fh.write(contents)
 
