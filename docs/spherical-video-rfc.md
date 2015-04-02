@@ -1,5 +1,5 @@
 # Spherical Video RFC (draft)
-*This document describes an open metadata scheme by which Matroska-like and MP4 multimedia containers may accommodate spherical video. Comments are welcome on the [webm-discuss](https://groups.google.com/a/webmproject.org/forum/#!forum/webm-discuss) mailing list or file an issue on GitHub.* 
+*This document describes an open metadata scheme by which Matroska-like and MP4 multimedia containers may accommodate spherical video. Comments are welcome on the [webm-discuss](https://groups.google.com/a/webmproject.org/forum/#!forum/webm-discuss) mailing list or [file an issue](https://github.com/google/spatial-media/issues) on GitHub.* 
 
 *Last modified: 2015-02-06*
 
@@ -16,7 +16,7 @@ Example:
     </rdf:SphericalVideo>
 
 
-Local metadata is stored either as metadata tracks or along with the video frames (see **Local Metadata** below).
+Local metadata is stored either as metadata tracks or along with the video frames (see [Local Metadata](#LocalMetadata) below).
 
 ## Global Metadata
 Global Metadata is metadata that applies to the file or track as a whole. It is stored in the container as defined in the following sections.
@@ -52,23 +52,45 @@ Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* ato
 
 | **Name** | **Description** | **Type** | **Required** | **Default** | **V1.0 Requirements** |
 |----------|-----------------|----------|--------------|-------------|-----------------------|
-|Spherical | Flag indiciating if the video is a spherical video  | Boolean  | Yes          |    -        |  Must be "true".      |
-|Stitched  | Flag indicating if the video is stitched.           | Boolean  | Yes          |    -        |  Must be "true".      |
+|Spherical | Flag indicating if the video is a spherical video | Boolean  | Yes | - |  Must be `true`. |
+|Stitched  | Flag indicating if the video is stitched.          | Boolean  | Yes | - |  Must be `true`. |
 |StitchingSoftware| Software used to stitch the spherical video. | String | Yes | - | |
-|ProjectionType| Projection type used in the video frames. | String | Yes | - | Must be "equirectangular" |
+|ProjectionType| Projection type used in the video frames. | String | Yes | - | Must be `equirectangular`. |
+|[StereoMode](#StereoMode)| Description of stereoscopic 3D layout. | String | No | `mono` | Must be `mono`, `left-right`, or `top-bottom`. |
 |SourceCount|Number of cameras used to create the spherical video. | Integer | No | - | |
-|InitialViewHeadingDegrees|The heading angle of the initial view in degrees. | Integer | No | 0 | |
-|InitialViewPitchDegrees|The pitch angle of the initial view in degrees. | Integer | No | 0 | |
-|InitialViewRollDegrees|The roll angle of the initial view in degrees. | Integer | No | 0 | |
+|[InitialViewHeadingDegrees](#InitialView)|The heading angle of the initial view in degrees. | Integer | No | 0 | |
+|[InitialViewPitchDegrees](#InitialView)|The pitch angle of the initial view in degrees. | Integer | No | 0 | |
+|[InitialViewRollDegrees](#InitialView)|The roll angle of the initial view in degrees. | Integer | No | 0 | |
 |Timestamp | Epoch timestamp of when the first frame in the video was recorded. | Integer | No | - | |
-|CroppedAreaImageWidthPixels|Width of the video frame to display (e.g. cropping). | Integer | No | Container width. | |
-|CroppedAreaImageHeightPixels|Height of the video frame to display (e.g. cropping). | Integer | No | Container height. | |
-|FullPanoWidthPixels|Width of the encoded video frame in pixels.|Integer|No|Container width.| |
-|FullPanoHeightPixels|Height of the encoded video frame in pixels.|Integer|No|Container height.| |
+|FullPanoWidthPixels|Width of the encoded video frame in pixels.|Integer|No| See [Stereo Mode](#StereoMode).| |
+|FullPanoHeightPixels|Height of the encoded video frame in pixels.|Integer|No| See [Stereo Mode](#StereoMode).| |
+|CroppedAreaImageWidthPixels|Width of the video frame to display (e.g. cropping). | Integer | No | See [Stereo Mode](#StereoMode). | |
+|CroppedAreaImageHeightPixels|Height of the video frame to display (e.g. cropping). | Integer | No | See [Stereo Mode](#StereoMode). | |
 |CroppedAreaLeftPixels|Column where the left edge of the image was cropped from the full sized panorama|Integer|No|0| |
 |CroppedAreaTopPixels|Row where the top edge of the image was cropped from the full sized panorama|Integer|No|0| |
 
-#### Initial Viewport
+<a name="StereoMode"\>
+#### Stereo Mode
+
+[SEI Frame Packing Arragement](http://www.itu.int/ITU-T/recommendations/rec.aspx?rec=10635) and the [StereoMode](http://www.matroska.org/technical/specs/index.html#StereoMode) tag for Matroska/WebM video files can be used to describe the left/right frame layout. To include non-h264 MPEG-4 files an additional StereoMode tag will override the native stereo configuration. The supported StereoMode values are shown below with the corresponding native values.
+
+| **Name** | **Description** |Equivalent MKV Value | Equivalent h264 SEI FPI |
+|----------|-----------------|---------------------|-------------------------|
+| mono       | Whole frame contains a single mono view.| 0 | - |
+| left-right | Left half contains the left eye while the right half contains the right eye.| 1 | 3 |
+| top-bottom | The top half contains the left eye and the bottom half contains the right eye. | 3 | 4 |
+
+Cropping, initial view, and projection properties are shared across the left/right eyes. Each video frame is divided into the left/right eye regions then cropping and view information is applied treating each region as a separate video frame. Default cropping information varies with the StereoMode tag as shown below.
+
+| **Name**             |   **mono**      |     **left-right**   | **top-bottom**       |
+|----------------------|-----------------|----------------------|----------------------|
+|CroppedAreaImageWidth |Container Width. |Half Container Width. |Container Width.      |
+|CroppedAreaImageHeight|Container Height.|Container Height.     |Half Container Height.|
+|FullPanoWidthPixels   |Container Width. |Half Container Width. |Container Width.      |
+|FullPanoHeightPixels  |Container Height.|Container Height.     |Half Container Height.|
+
+<a name="InitialView"\>
+#### Initial View
 
 The default initial viewport is set such that the frame center occurs at the view center. A diagram of the rotation model for an equirectangular projection is shown below.
 
@@ -89,6 +111,7 @@ The default initial viewport is set such that the frame center occurs at the vie
     o  - the image center for a pitch of 45 and a heading of 90
     >  - the up vector for a rotation of 90 degrees.
 
+<a name="LocalMetadata"/a>
 ### Local Metadata
 Version 1 supports the following Local Metadata:
 

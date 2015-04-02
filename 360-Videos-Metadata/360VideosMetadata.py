@@ -58,18 +58,24 @@ spherical_uuid_id = (
 # XML contents.
 rdf_prefix = " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
 
-spherical_xml = (
-    "<?xml version=\"1.0\"?>\n"
-    "<rdf:SphericalVideo"
-    " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
-    " xmlns:GSpherical=\"http://ns.google.com/videos/1.0/spherical/\">\n"
-    "  <GSpherical:Spherical>true</GSpherical:Spherical>\n"
-    "  <GSpherical:Stitched>true</GSpherical:Stitched>\n"
-    "  <GSpherical:StitchingSoftware>Spherical Metadata Tool"
-    "</GSpherical:StitchingSoftware>\n"
-    "  <GSpherical:ProjectionType>equirectangular"
-    "</GSpherical:ProjectionType>\n"
-    "</rdf:SphericalVideo>")
+spherical_xml_header = \
+    """<?xml version=\"1.0\"?>
+    <rdf:SphericalVideo
+     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"
+     xmlns:GSpherical=\"http://ns.google.com/videos/1.0/spherical/\">"""
+
+spherical_xml_contents = \
+      """ <GSpherical:Spherical>true</GSpherical:Spherical>
+      <GSpherical:Stitched>true</GSpherical:Stitched>
+      <GSpherical:StitchingSoftware>Spherical Metadata Tool</GSpherical:StitchingSoftware>
+      <GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>"""
+
+spherical_xml_contents_over_under = \
+    "  <GSpherical:StereoMode>over-under</GSpherical:StereoMode>"
+spherical_xml_contents_left_right = \
+    "  <GSpherical:StereoMode>left-right</GSpherical:StereoMode>"
+
+spherical_xml_footer = "</rdf:SphericalVideo>"
 
 spherical_tags_list = [
     "Spherical",
@@ -77,6 +83,7 @@ spherical_tags_list = [
     "StitchingSoftware",
     "ProjectionType",
     "SourceCount",
+    "StereoMode",
     "InitialViewHeadingDegrees",
     "InitialViewPitchDegrees",
     "InitialViewRollDegrees",
@@ -444,7 +451,7 @@ class mpeg4(container_atom):
         self.mdat_position = None
 
     @staticmethod
-    def load(fh, position, size):
+    def load(fh):
         """Load the mpeg4 file structure of a file.
 
         Args:
@@ -455,7 +462,10 @@ class mpeg4(container_atom):
         return:
           mpeg4, the loaded mpeg4 structure.
         """
-        contents = atom.load_multiple(fh, position, size)
+
+        fh.seek(0, 2)
+        size = fh.tell()
+        contents = atom.load_multiple(fh, 0, size)
 
         if (contents is None):
             print "Error, failed to load .mp4 file."
@@ -532,8 +542,11 @@ class mpeg4(container_atom):
             element.save(in_fh, out_fh, delta)
 
 
-def spherical_uuid():
+def spherical_uuid(metadata):
     """Constructs a uuid containing spherical metadata.
+
+    Args:
+      metadata: String, xml to inject in spherical tag.
 
     Returns:
       uuid_leaf: a atom containing spherical metadata.
@@ -544,19 +557,19 @@ def spherical_uuid():
     uuid_leaf.header_size = 8
     uuid_leaf.content_size = 0
 
-    uuid_leaf.contents = spherical_uuid_id + spherical_xml
+    uuid_leaf.contents = spherical_uuid_id + metadata
     uuid_leaf.content_size = len(uuid_leaf.contents)
 
     return uuid_leaf
 
 
-def mpeg4_add_spherical(mpeg4_file, in_fh):
+def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
     """Adds a spherical uuid atom to an mpeg4 file for all video tracks.
 
     Args:
-      mpeg4_file: mpeg4, Mpeg4 file structure to add spherical
-      metadata.
+      mpeg4_file: mpeg4, Mpeg4 file structure to add metadata.
       in_fh: file handle, Source for uncached file contents.
+      metadata: string, xml metadata to inject into spherical tag.
     """
     for element in mpeg4_file.moov_atom.contents:
         if element.name == "trak":
@@ -575,7 +588,7 @@ def mpeg4_add_spherical(mpeg4_file, in_fh):
                         break
 
                 if added:
-                    if not element.add(spherical_uuid()):
+                    if not element.add(spherical_uuid(metadata)):
                         return False
                     break
 
@@ -643,11 +656,6 @@ def ParseSphericalMKV(file_name):
         else:
             break
     xml_contents = "\n".join(xml_contents)
-
-    start = xml_contents.find('"') + 1
-    end = xml_contents.rfind('"')
-    xml_contents = xml_contents[start: end]
-
     ParseSphericalXML(xml_contents)
 
 
@@ -711,27 +719,34 @@ def ParseSphericalMpeg4(mpeg4_file, fh):
                         ParseSphericalXML(contents)
 
 
-def ProcessMpeg4(input_file, output_file=None):
+def PrintMpeg4(input_file):
     in_fh = open(input_file, "rb")
     if in_fh is None:
         print ("File: \"", input_file, "\" does not exist or do not have "
                "permission.")
         return
 
-    position = 0
-    in_fh.seek(0, 2)
-    total_size = in_fh.tell()
-
-    mpeg4_file = mpeg4.load(in_fh, 0, total_size)
+    mpeg4_file = mpeg4.load(in_fh)
     if (mpeg4_file is None):
         return
 
-    if not output_file:
-        print "Loaded file settings"
-        ParseSphericalMpeg4(mpeg4_file, in_fh)
+    print "Loaded file settings"
+    ParseSphericalMpeg4(mpeg4_file, in_fh)
+    return
+
+
+def InjectMpeg4(input_file, output_file, metadata):
+    in_fh = open(input_file, "rb")
+    if in_fh is None:
+        print ("File: \"", input_file, "\" does not exist or do not have "
+               "permission.")
         return
 
-    if not mpeg4_add_spherical(mpeg4_file, in_fh):
+    mpeg4_file = mpeg4.load(in_fh)
+    if (mpeg4_file is None):
+        return
+
+    if not mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
         print "Failed to insert spherical data"
         return
 
@@ -744,25 +759,29 @@ def ProcessMpeg4(input_file, output_file=None):
     in_fh.close()
 
 
-def ProcessMKV(input_file, output_file=None):
+def PrintMKV(input_file):
     if not ffmpeg():
         print "please install ffmpeg for mkv support"
         exit(0)
 
-    if (not output_file):
-        print "Loaded file settings"
-        ParseSphericalMKV(input_file)
-    else:
-        process = subprocess.Popen(
-            ["ffmpeg", "-i", input_file, "-metadata:s:v",
-             'spherical-video=\"' + spherical_xml + '\"', "-c:v", "copy",
-             "-c:a", "copy", output_file], stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE)
-        print "Press y <enter> to confirm overwrite"
-        process.wait()
-        stdout, stderr = process.communicate()
-        print "Saved file settings"
-        ParseSphericalMKV(output_file)
+    print "Loaded file settings"
+    ParseSphericalMKV(input_file)
+
+def InjectMKV(input_file, output_file, metadata):
+    if not ffmpeg():
+        print "please install ffmpeg for mkv support"
+        exit(0)
+
+    process = subprocess.Popen(
+        ["ffmpeg", "-i", input_file, "-metadata:s:v",
+         'spherical-video=' + metadata, "-c:v", "copy",
+         "-c:a", "copy", output_file], stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE)
+    print "Press y <enter> to confirm overwrite"
+    process.wait()
+    stdout, stderr = process.communicate()
+    print "Saved file settings"
+    ParseSphericalMKV(output_file)
 
 
 def PrintMetadata(src):
@@ -778,18 +797,18 @@ def PrintMetadata(src):
     print "Processing: ", infile, "\n"
 
     if (os.path.splitext(infile)[1].lower() in [".webm", ".mkv"]):
-        ProcessMKV(infile, None)
+        PrintMKV(infile)
         return
 
     if (os.path.splitext(infile)[1].lower() == ".mp4"):
-        ProcessMpeg4(infile, None)
+        PrintMpeg4(infile)
         return
 
     print "Unknown file type"
     return
 
 
-def InjectMetadata(src, dest):
+def InjectMetadata(src, dest, metadata):
     infile = os.path.abspath(src)
     outfile = os.path.abspath(dest)
 
@@ -807,11 +826,11 @@ def InjectMetadata(src, dest):
     print "Processing: ", infile, "\n"
 
     if (os.path.splitext(infile)[1].lower() in [ ".webm", ".mkv"]):
-        ProcessMKV(infile, outfile)
+        InjectMKV(infile, outfile, metadata)
         return
 
     if (os.path.splitext(infile)[1].lower() == ".mp4"):
-        ProcessMpeg4(infile, outfile)
+        InjectMpeg4(infile, outfile, metadata)
         return
 
     print "Unknown file type"
@@ -828,13 +847,34 @@ def main():
                       action="store_true",
                       help="injects spherical metadata into a MP4/WebM file, "
                            "saving the result to a new file")
+    parser.add_option('-s', '--stereo',
+                      type='choice',
+                      action='store',
+                      dest='stereo',
+                      choices=['none', 'over-under', 'left-right',],
+                      default='none',
+                      help='stereo frame order (over-under|left-right)',)
+
     (opts, args) = parser.parse_args()
+
+    # Configure inject xml.
+    additional_xml = ""
+    if opts.stereo == 'over-under':
+        additional_xml = spherical_xml_contents_over_under
+
+    if opts.stereo == 'left-right':
+        additional_xml = spherical_xml_contents_left_right
+
+    spherical_xml = (spherical_xml_header +
+                     spherical_xml_contents +
+                     additional_xml +
+                     spherical_xml_footer)
 
     if opts.inject:
         if len(args) != 2:
             print "Injecting metadata requires both a source and destination."
             return
-        InjectMetadata(args[0], args[1])
+        InjectMetadata(args[0], args[1], spherical_xml)
         return
 
     if len(args) > 0:
