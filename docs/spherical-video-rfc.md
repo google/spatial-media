@@ -56,7 +56,7 @@ Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* ato
 |Stitched  | Flag indicating if the video is stitched.          | Boolean  | Yes | - |  Must be `true`. |
 |StitchingSoftware| Software used to stitch the spherical video. | String | Yes | - | |
 |ProjectionType| Projection type used in the video frames. | String | Yes | - | Must be `equirectangular`. |
-|[StereoMode](#StereoMode)| Description of stereoscopic 3D layout. | String | No | `mono` | Must be `mono`, `left-right`, or `top-bottom`. |
+|[StereoMode](#StereoMode)| Description of stereoscopic 3D layout. | String | No | `mono` | Must be `mono`, `left-right`, or `over-under`. |
 |SourceCount|Number of cameras used to create the spherical video. | Integer | No | - | |
 |[InitialViewHeadingDegrees](#InitialView)|The heading angle of the initial view in degrees. | Integer | No | 0 | |
 |[InitialViewPitchDegrees](#InitialView)|The pitch angle of the initial view in degrees. | Integer | No | 0 | |
@@ -78,11 +78,11 @@ Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* ato
 |----------|-----------------|---------------------|-------------------------|
 | mono       | Whole frame contains a single mono view.| 0 | - |
 | left-right | Left half contains the left eye while the right half contains the right eye.| 1 | 3 |
-| top-bottom | The top half contains the left eye and the bottom half contains the right eye. | 3 | 4 |
+| over-under | The top half contains the left eye and the bottom half contains the right eye. | 3 | 4 |
 
 Cropping, initial view, and projection properties are shared across the left/right eyes. Each video frame is divided into the left/right eye regions then cropping and view information is applied treating each region as a separate video frame. Default cropping information varies with the StereoMode tag as shown below.
 
-| **Name**             |   **mono**      |     **left-right**   | **top-bottom**       |
+| **Name**             |   **mono**      |     **left-right**   | **over-under**       |
 |----------------------|-----------------|----------------------|----------------------|
 |CroppedAreaImageWidth |Container Width. |Half Container Width. |Container Width.      |
 |CroppedAreaImageHeight|Container Height.|Container Height.     |Half Container Height.|
