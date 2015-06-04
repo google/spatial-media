@@ -70,8 +70,8 @@ spherical_xml_contents = \
       <GSpherical:StitchingSoftware>Spherical Metadata Tool</GSpherical:StitchingSoftware>
       <GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>"""
 
-spherical_xml_contents_over_under = \
-    "  <GSpherical:StereoMode>over-under</GSpherical:StereoMode>"
+spherical_xml_contents_top_bottom = \
+    "  <GSpherical:StereoMode>top-bottom</GSpherical:StereoMode>"
 spherical_xml_contents_left_right = \
     "  <GSpherical:StereoMode>left-right</GSpherical:StereoMode>"
 
@@ -851,16 +851,16 @@ def main():
                       type='choice',
                       action='store',
                       dest='stereo',
-                      choices=['none', 'over-under', 'left-right',],
+                      choices=['none', 'top-bottom', 'left-right',],
                       default='none',
-                      help='stereo frame order (over-under|left-right)',)
+                      help='stereo frame order (top-bottom|left-right)',)
 
     (opts, args) = parser.parse_args()
 
     # Configure inject xml.
     additional_xml = ""
-    if opts.stereo == 'over-under':
-        additional_xml = spherical_xml_contents_over_under
+    if opts.stereo == 'top-bottom':
+        additional_xml = spherical_xml_contents_top_bottom
 
     if opts.stereo == 'left-right':
         additional_xml = spherical_xml_contents_left_right

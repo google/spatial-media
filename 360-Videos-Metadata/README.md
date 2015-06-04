@@ -14,6 +14,6 @@ Prints help.
 For each file specified, prints any spherical metadata contained within.
 
 
-    ./360VideosMetadata.py -i [--stereo=(over-under|left-right)] <input> <output>
-Reads &lt;input&gt; and adds spherical / 360 metadata saving the altered copy to &lt;output&gt;. Input and output cannot be the same file. Options over-under and left-right flags set the appropriate values for the StereoMode tag.
+    ./360VideosMetadata.py -i [--stereo=(top-bottom|left-right)] <input> <output>
+Reads &lt;input&gt; and adds spherical / 360 metadata saving the altered copy to &lt;output&gt;. Input and output cannot be the same file. Options top-bottom and left-right flags set the appropriate values for the StereoMode tag.
 
