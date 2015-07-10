@@ -212,7 +212,7 @@ class atom:
             tag_copy(in_fh, out_fh, self.content_size)
 
     def set(self, new_contents):
-        """Sets the atom contents. This can be used to change an atom"s
+        """Sets the atom contents. This can be used to change an atom's
         contents"""
         contents = new_contents
         content_size = len(contents)
@@ -624,7 +624,7 @@ def ffmpeg():
             return True
     else:
         for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip("\"")
+            path = path.strip('"')
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return True
