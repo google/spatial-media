@@ -75,6 +75,15 @@ spherical_xml_contents_top_bottom = \
 spherical_xml_contents_left_right = \
     "  <GSpherical:StereoMode>left-right</GSpherical:StereoMode>"
 
+# Parameter order matches that of the crop option.
+spherical_xml_contents_crop_format = \
+      """ <GSpherical:CroppedAreaImageWidthPixels>{0}</GSpherical:CroppedAreaImageWidthPixels>
+      <GSpherical:CroppedAreaImageHeightPixels>{1}</GSpherical:CroppedAreaImageHeightPixels>
+      <GSpherical:FullPanoWidthPixels>{2}</GSpherical:FullPanoWidthPixels>
+      <GSpherical:FullPanoHeightPixels>{3}</GSpherical:FullPanoHeightPixels>
+      <GSpherical:CroppedAreaLeftPixels>{4}</GSpherical:CroppedAreaLeftPixels>
+      <GSpherical:CroppedAreaTopPixels>{5}</GSpherical:CroppedAreaTopPixels>"""
+
 spherical_xml_footer = "</rdf:SphericalVideo>"
 
 spherical_tags_list = [
@@ -101,6 +110,8 @@ spherical_tags = dict()
 for tag in spherical_tags_list:
     spherical_tags[spherical_prefix + tag] = tag
 
+integer_regex_group = "(\d+)"
+crop_regex = '^{0}$'.format(':'.join([integer_regex_group] * 6))
 
 class atom:
     """MPEG4 atom contents and behaviour true for all atoms."""
@@ -774,7 +785,7 @@ def InjectMKV(input_file, output_file, metadata):
 
     process = subprocess.Popen(
         ["ffmpeg", "-i", input_file, "-metadata:s:v",
-         'spherical-video=' + metadata, "-c:v", "copy",
+         "spherical-video=" + metadata, "-c:v", "copy",
          "-c:a", "copy", output_file], stderr=subprocess.PIPE,
         stdout=subprocess.PIPE)
     print "Press y <enter> to confirm overwrite"
@@ -847,23 +858,46 @@ def main():
                       action="store_true",
                       help="injects spherical metadata into a MP4/WebM file, "
                            "saving the result to a new file")
-    parser.add_option('-s', '--stereo',
-                      type='choice',
-                      action='store',
-                      dest='stereo',
-                      choices=['none', 'top-bottom', 'left-right',],
-                      default='none',
-                      help='stereo frame order (top-bottom|left-right)',)
+    parser.add_option("-s", "--stereo",
+                      type="choice",
+                      action="store",
+                      dest="stereo",
+                      choices=["none", "top-bottom", "left-right",],
+                      default="none",
+                      help="stereo frame order (top-bottom|left-right)",)
+    parser.add_option("-c", "--crop",
+                      type="string",
+                      action="store",
+                      default=None,
+                      help=("crop region. Must specify 6 integers in the form "
+                            "of \"w:h:f_w:f_h:x:y\" where "
+                            "w=CroppedAreaImageWidthPixels "
+                            "h=CroppedAreaImageHeightPixels "
+                            "f_w=FullPanoWidthPixels "
+                            "f_h=FullPanoHeightPixels "
+                            "x=CroppedAreaLeftPixels "
+                            "y=CroppedAreaTopPixels"),)
 
     (opts, args) = parser.parse_args()
 
     # Configure inject xml.
     additional_xml = ""
-    if opts.stereo == 'top-bottom':
-        additional_xml = spherical_xml_contents_top_bottom
+    if opts.stereo == "top-bottom":
+        additional_xml += spherical_xml_contents_top_bottom
 
-    if opts.stereo == 'left-right':
-        additional_xml = spherical_xml_contents_left_right
+    if opts.stereo == "left-right":
+        additional_xml += spherical_xml_contents_left_right
+
+    if opts.crop:
+        crop_match = re.match(crop_regex, opts.crop)
+        if not crop_match:
+            print "Error: Invalid crop params: {crop}".format(crop=opts.crop)
+        else:
+            additional_xml += spherical_xml_contents_crop_format.format(
+                crop_match.group(1), crop_match.group(2),
+                crop_match.group(3), crop_match.group(4),
+                crop_match.group(5), crop_match.group(6))
+            print additional_xml
 
     spherical_xml = (spherical_xml_header +
                      spherical_xml_contents +
