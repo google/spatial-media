@@ -39,7 +39,7 @@ Global XML metadata is stored using Matroska/WebM's "Tags" mechanism, having the
                 - &lt;xml data&gt;
 
 ### MP4
-Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* atom to avoid collisions with other potential metadata. This atom shall cite the UUID value `ffcc8263-f855-4a93-8814-587a02521fdd`. The XML metadata itself is written within the *uuid* leaf as a UTF-8 string.
+Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* box to avoid collisions with other potential metadata. This box shall cite the UUID value `ffcc8263-f855-4a93-8814-587a02521fdd`. The XML metadata itself is written within the *uuid* leaf as a UTF-8 string.
 
 - moov
     - ...
@@ -142,7 +142,7 @@ Metadata content should be stored as a separate metadata track. The metadata tra
 Each metadata chunk must be stored as either [Blocks](http://matroska.org/technical/specs/index.html#Block) or [SimpleBlocks](http://matroska.org/technical/specs/index.html#SimpleBlock), per the Matroska specification, with the exception that no lacing is permitted. Metadata blocks should always be key frames and must be indicated accordingly in the flags -- depending on whether it's a SimpleBlock or a Block.
 
 #### MP4
-Create a track with ComponentSubType set to "meta" for Timed Text Metadata. The atom structure is as follows:
+Create a track with ComponentSubType set to "meta" for Timed Text Metadata. The box structure is as follows:
 
 - mdia
     - mdhd
