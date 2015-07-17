@@ -892,12 +892,57 @@ def main():
         crop_match = re.match(crop_regex, opts.crop)
         if not crop_match:
             print "Error: Invalid crop params: {crop}".format(crop=opts.crop)
+            return
         else:
+            cropped_width_pixels = int(crop_match.group(1))
+            cropped_height_pixels = int(crop_match.group(2))
+            full_width_pixels = int(crop_match.group(3))
+            full_height_pixels = int(crop_match.group(4))
+            cropped_offset_left_pixels = int(crop_match.group(5))
+            cropped_offset_top_pixels = int(crop_match.group(6))
+
+            # This should never happen based on the crop regex.
+            if full_width_pixels <= 0 or full_height_pixels <= 0:
+                print ("Error with crop params: full pano dimensions are "
+                       "invalid: width = {width} height = {height}".format(
+                           width=full_width_pixels, height=full_height_pixels))
+                return
+
+            if (cropped_width_pixels <= 0 or
+                cropped_height_pixels <= 0 or
+                cropped_width_pixels > full_width_pixels or
+                cropped_height_pixels > full_height_pixels):
+                print ("Error with crop params: cropped area dimensions are "
+                       "invalid: width = {width} height = {height}".format(
+                           width=cropped_width_pixels,
+                           height=cropped_height_pixels))
+                return
+
+            # We are pretty restrictive and don't allow anything strange. There
+            # could be use-cases for a horizontal offset that essentially
+            # translates the domain, but we don't support this (so that no extra
+            # work has to be done on the client).
+            total_width = cropped_offset_left_pixels + cropped_width_pixels
+            total_height = cropped_offset_top_pixels + cropped_height_pixels
+            if (cropped_offset_left_pixels < 0 or
+                cropped_offset_top_pixels < 0 or
+                total_width > full_width_pixels or
+                total_height > full_height_pixels):
+                print ("Error with crop params: cropped area offsets are "
+                       "invalid: left = {left} top = {top} "
+                       "left+cropped width: {total_width} "
+                       "top+cropped height: {total_height}".format(
+                           left=cropped_offset_left_pixels,
+                           top=cropped_offset_top_pixels,
+                           total_width=total_width,
+                           total_height=total_height))
+                return
+
             additional_xml += spherical_xml_contents_crop_format.format(
-                crop_match.group(1), crop_match.group(2),
-                crop_match.group(3), crop_match.group(4),
-                crop_match.group(5), crop_match.group(6))
-            print additional_xml
+                cropped_width_pixels, cropped_height_pixels,
+                full_width_pixels, full_height_pixels,
+                cropped_offset_left_pixels, cropped_offset_top_pixels)
+
 
     spherical_xml = (spherical_xml_header +
                      spherical_xml_contents +
