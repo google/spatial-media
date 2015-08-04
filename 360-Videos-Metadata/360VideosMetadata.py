@@ -457,9 +457,9 @@ class mpeg4(container_box):
         self.header_size = 0
         self.moov_box = None
         self.free_box = None
-        self.mdat_box = None
+        self.first_mdat_box = None
         self.ftyp_box = None
-        self.mdat_position = None
+        self.first_mdat_position = None
 
     @staticmethod
     def load(fh):
@@ -494,8 +494,8 @@ class mpeg4(container_box):
                 loaded_mpeg4.moov_box = element
             if (element.name == "free"):
                 loaded_mpeg4.free_box = element
-            if (element.name == "mdat"):
-                loaded_mpeg4.mdat_box = element
+            if (element.name == "mdat" and loaded_mpeg4.first_mdat_box is None):
+                loaded_mpeg4.first_mdat_box = element
             if (element.name == "ftyp"):
                 loaded_mpeg4.ftyp_box = element
 
@@ -503,12 +503,12 @@ class mpeg4(container_box):
             print ("Error, file does not contain moov box.")
             return None
 
-        if (loaded_mpeg4.mdat_box is None):
+        if (loaded_mpeg4.first_mdat_box is None):
             print ("Error, file does not contain mdat box.")
             return None
 
-        loaded_mpeg4.mdat_position = loaded_mpeg4.mdat_box.position
-        loaded_mpeg4.mdat_position += loaded_mpeg4.mdat_box.header_size
+        loaded_mpeg4.first_mdat_position = loaded_mpeg4.first_mdat_box.position
+        loaded_mpeg4.first_mdat_position += loaded_mpeg4.first_mdat_box.header_size
 
         loaded_mpeg4.content_size = 0
         for element in loaded_mpeg4.contents:
@@ -547,7 +547,7 @@ class mpeg4(container_box):
                 new_position += element.header_size
                 break
             new_position += element.size()
-        delta = new_position - self.mdat_position
+        delta = new_position - self.first_mdat_position
 
         for element in self.contents:
             element.save(in_fh, out_fh, delta)
