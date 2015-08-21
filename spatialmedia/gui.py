@@ -18,6 +18,7 @@
 """Spherical Metadata Python Tool
 
 Tool for examining and injecting spherical metadata into MP4 files.
+Naming conventions are styled to match TKinter naming conventions.
 """
 
 from spherical import InjectMetadata
