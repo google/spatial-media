@@ -93,7 +93,7 @@ class Application(Frame):
     def __init__(self, master=None):
         self.title = "Spherical Metadata Tool"
         self.open_options = {}
-        self.open_options['filetypes'] = [('Mp4', '.mp4')]
+        self.open_options["filetypes"] = [("Mp4", ".mp4")]
 
         Frame.__init__(self, master)
         self.createWidgets()

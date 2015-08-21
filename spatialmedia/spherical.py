@@ -20,10 +20,10 @@
 Tool for examining and injecting spherical metadata into MP4 files.
 """
 
-from mpeg import box
-from mpeg import mpeg4
-from mpeg import tag_trak
-from mpeg import tag_uuid
+from spatialmedia.mpeg import box
+from spatialmedia.mpeg import mpeg4
+from spatialmedia.mpeg import tag_trak
+from spatialmedia.mpeg import tag_uuid
 
 from optparse import OptionParser
 import os
@@ -94,7 +94,7 @@ for tag in spherical_tags_list:
     spherical_tags[spherical_prefix + tag] = tag
 
 integer_regex_group = "(\d+)"
-crop_regex = '^{0}$'.format(':'.join([integer_regex_group] * 6))
+crop_regex = "^{0}$".format(":".join([integer_regex_group] * 6))
 
 
 def spherical_uuid(metadata):

@@ -21,11 +21,17 @@ Tool for examining and injecting spherical metadata into MKV/MP4 files.
 """
 
 from optparse import OptionParser
-from spherical import InjectMetadata
-from spherical import ParseMetadata
-from spherical import GenerateSphericalXML
-import re
 
+import sys
+import os
+path = os.path.dirname(sys.modules[__name__].__file__)
+path = os.path.join(path, '..')
+sys.path.insert(0, path)
+
+from spatialmedia.spherical import InjectMetadata
+from spatialmedia.spherical import ParseMetadata
+from spatialmedia.spherical import GenerateSphericalXML
+import re
 
 def console(contents):
     print (contents)

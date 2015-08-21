@@ -111,7 +111,7 @@ for tag in spherical_tags_list:
     spherical_tags[spherical_prefix + tag] = tag
 
 integer_regex_group = "(\d+)"
-crop_regex = '^{0}$'.format(':'.join([integer_regex_group] * 6))
+crop_regex = "^{0}$".format(":".join([integer_regex_group] * 6))
 
 class box:
     """MPEG4 box contents and behaviour true for all boxes."""
@@ -624,7 +624,7 @@ def ffmpeg():
             return True
     else:
         for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
+            path = path.strip("\"")
             exe_file = os.path.join(path, program)
             if is_exe(exe_file):
                 return True
