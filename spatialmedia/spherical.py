@@ -20,10 +20,7 @@
 Tool for examining and injecting spherical metadata into MP4 files.
 """
 
-from spatialmedia.mpeg import box
-from spatialmedia.mpeg import mpeg4
-from spatialmedia.mpeg import tag_trak
-from spatialmedia.mpeg import tag_uuid
+from spatialmedia import mpeg
 
 from optparse import OptionParser
 import os
@@ -33,19 +30,19 @@ import struct
 import xml.etree
 import xml.etree.ElementTree
 
-spherical_uuid_id = (
+SPHERICAL_UUID_ID = (
     "\xff\xcc\x82\x63\xf8\x55\x4a\x93\x88\x14\x58\x7a\x02\x52\x1f\xdd")
 
 # XML contents.
-rdf_prefix = " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
+RDF_PREFIX = " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
 
-spherical_xml_header = \
+SPHERICAL_XML_HEADER = \
     "<?xml version=\"1.0\"?>"\
     "<rdf:SphericalVideo\n"\
     "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\"\n"\
     "xmlns:GSpherical=\"http://ns.google.com/videos/1.0/spherical/\">"
 
-spherical_xml_contents = \
+SPHERICAL_XML_CONTENTS = \
     "<GSpherical:Spherical>true</GSpherical:Spherical>"\
     "<GSpherical:Stitched>true</GSpherical:Stitched>"\
     "<GSpherical:StitchingSoftware>"\
@@ -53,13 +50,13 @@ spherical_xml_contents = \
     "</GSpherical:StitchingSoftware>"\
     "<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>"
 
-spherical_xml_contents_top_bottom = \
+SPHERICAL_XML_CONTENTS_TOP_BOTTOM = \
     "<GSpherical:StereoMode>top-bottom</GSpherical:StereoMode>"
-spherical_xml_contents_left_right = \
+SPHERICAL_XML_CONTENTS_LEFT_RIGHT = \
     "<GSpherical:StereoMode>left-right</GSpherical:StereoMode>"
 
 # Parameter order matches that of the crop option.
-spherical_xml_contents_crop_format = \
+SPHERICAL_XML_CONTENTS_CROP_FORMAT = \
     "<GSpherical:CroppedAreaImageWidthPixels>{0}</GSpherical:CroppedAreaImageWidthPixels>"\
     "<GSpherical:CroppedAreaImageHeightPixels>{1}</GSpherical:CroppedAreaImageHeightPixels>"\
     "<GSpherical:FullPanoWidthPixels>{2}</GSpherical:FullPanoWidthPixels>"\
@@ -67,9 +64,9 @@ spherical_xml_contents_crop_format = \
     "<GSpherical:CroppedAreaLeftPixels>{4}</GSpherical:CroppedAreaLeftPixels>"\
     "<GSpherical:CroppedAreaTopPixels>{5}</GSpherical:CroppedAreaTopPixels>"
 
-spherical_xml_footer = "</rdf:SphericalVideo>"
+SPHERICAL_XML_FOOTER = "</rdf:SphericalVideo>"
 
-spherical_tags_list = [
+SPHERICAL_TAGS_LIST = [
     "Spherical",
     "Stitched",
     "StitchingSoftware",
@@ -88,10 +85,10 @@ spherical_tags_list = [
     "CroppedAreaTopPixels",
 ]
 
-spherical_prefix = "{http://ns.google.com/videos/1.0/spherical/}"
-spherical_tags = dict()
-for tag in spherical_tags_list:
-    spherical_tags[spherical_prefix + tag] = tag
+SPHERICAL_PREFIX = "{http://ns.google.com/videos/1.0/spherical/}"
+SPHERICAL_TAGS = dict()
+for tag in SPHERICAL_TAGS_LIST:
+    SPHERICAL_TAGS[SPHERICAL_PREFIX + tag] = tag
 
 integer_regex_group = "(\d+)"
 crop_regex = "^{0}$".format(":".join([integer_regex_group] * 6))
@@ -106,13 +103,13 @@ def spherical_uuid(metadata):
     Returns:
       uuid_leaf: a box containing spherical metadata.
     """
-    uuid_leaf = box()
-    assert(len(spherical_uuid_id) == 16)
-    uuid_leaf.name = tag_uuid
+    uuid_leaf = mpeg.box()
+    assert(len(SPHERICAL_UUID_ID) == 16)
+    uuid_leaf.name = mpeg.TAG_UUID
     uuid_leaf.header_size = 8
     uuid_leaf.content_size = 0
 
-    uuid_leaf.contents = spherical_uuid_id + metadata
+    uuid_leaf.contents = SPHERICAL_UUID_ID + metadata
     uuid_leaf.content_size = len(uuid_leaf.contents)
 
     return uuid_leaf
@@ -127,18 +124,18 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
       metadata: string, xml metadata to inject into spherical tag.
     """
     for element in mpeg4_file.moov_box.contents:
-        if element.name == "trak":
+        if element.name == mpeg.TAG_TRAK:
             added = False
-            element.remove("uuid")
+            element.remove(mpeg.TAG_UUID)
             for sub_element in element.contents:
-                if sub_element.name != "mdia":
+                if sub_element.name != mpeg.TAG_MDIA:
                     continue
                 for mdia_sub_element in sub_element.contents:
-                    if mdia_sub_element.name != "hdlr":
+                    if mdia_sub_element.name != mpeg.TAG_HDLR:
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if (in_fh.read(4) == "vide"):
+                    if (in_fh.read(4) == mpeg.TRAK_TYPE_VIDE):
                         added = True
                         break
 
@@ -178,10 +175,10 @@ def ParseSphericalXML(contents, console):
 
     sphericalDictionary = dict()
     for child in parsed_xml.getchildren():
-        if child.tag in spherical_tags.keys():
-            console("\t\tFound: " + spherical_tags[child.tag]
+        if child.tag in SPHERICAL_TAGS.keys():
+            console("\t\tFound: " + SPHERICAL_TAGS[child.tag]
                     + " = " + child.text)
-            sphericalDictionary[spherical_tags[child.tag]] = child.text
+            sphericalDictionary[SPHERICAL_TAGS[child.tag]] = child.text
         else:
             tag = child.tag
             if (child.tag[:len(spherical_prefix)] == spherical_prefix):
@@ -189,6 +186,7 @@ def ParseSphericalXML(contents, console):
             console("\t\tUnknown: " + tag + " = " + child.text)
 
     return sphericalDictionary
+
 
 def ParseSphericalMpeg4(mpeg4_file, fh, console):
     """Returns spherical metadata for a loaded mpeg4 file.
@@ -203,19 +201,19 @@ def ParseSphericalMpeg4(mpeg4_file, fh, console):
     metadataSets = dict()
     track_num = 0
     for element in mpeg4_file.moov_box.contents:
-        if element.name == tag_trak:
+        if element.name == mpeg.TAG_TRAK:
             trackName = "Track %d" % track_num
             console("\t%s" % trackName)
             track_num += 1
             for sub_element in element.contents:
-                if sub_element.name == tag_uuid:
+                if sub_element.name == mpeg.TAG_UUID:
                     if sub_element.contents is not None:
                         sub_element_id = sub_element.contents[:16]
                     else:
                         fh.seek(sub_element.content_start())
                         sub_element_id = fh.read(16)
 
-                    if sub_element_id == spherical_uuid_id:
+                    if sub_element_id == SPHERICAL_UUID_ID:
                         if sub_element.contents is not None:
                             contents = sub_element.contents[16:]
                         else:
@@ -231,7 +229,7 @@ def ParseMpeg4(input_file, console):
         console("File: \"" + input_file + "\" does not exist or do not have "
                 "permission.")
 
-    mpeg4_file = mpeg4.load(in_fh)
+    mpeg4_file = mpeg.mpeg4.load(in_fh)
     if (mpeg4_file is None):
         console("File could not be opened.")
         return
@@ -246,7 +244,7 @@ def InjectMpeg4(input_file, output_file, metadata, console):
         console("File: \"" + input_file + "\" does not exist or do not have "
                 "permission.")
 
-    mpeg4_file = mpeg4.load(in_fh)
+    mpeg4_file = mpeg.mpeg4.load(in_fh)
     if (mpeg4_file is None):
         console("File could not be opened.")
 
@@ -309,10 +307,10 @@ def GenerateSphericalXML(stereo=None, crop=None):
     # Configure inject xml.
     additional_xml = ""
     if stereo == "top-bottom":
-        additional_xml += spherical_xml_contents_top_bottom
+        additional_xml += SPHERICAL_XML_CONTENTS_TOP_BOTTOM
 
     if stereo == "left-right":
-        additional_xml += spherical_xml_contents_left_right
+        additional_xml += SPHERICAL_XML_CONTENTS_LEFT_RIGHT
 
     if crop:
         crop_match = re.match(crop_regex, crop)
@@ -365,13 +363,13 @@ def GenerateSphericalXML(stereo=None, crop=None):
                                 total_height=total_height))
                     return
 
-            additional_xml += spherical_xml_contents_crop_format.format(
+            additional_xml += SPHERICAL_XML_CONTENTS_CROP_FORMAT.format(
                 cropped_width_pixels, cropped_height_pixels,
                 full_width_pixels, full_height_pixels,
                 cropped_offset_left_pixels, cropped_offset_top_pixels)
 
-    spherical_xml = (spherical_xml_header +
-                     spherical_xml_contents +
+    spherical_xml = (SPHERICAL_XML_HEADER +
+                     SPHERICAL_XML_CONTENTS +
                      additional_xml +
-                     spherical_xml_footer)
+                     SPHERICAL_XML_FOOTER)
     return spherical_xml

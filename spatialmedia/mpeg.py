@@ -23,27 +23,29 @@ Tool for loading mpeg4 files and manipulating atoms.
 import StringIO
 import struct
 
+TRAK_TYPE_VIDE = "vide"
+
 # Leaf types.
-tag_stco = "stco"
-tag_co64 = "co64"
-tag_free = "free"
-tag_mdat = "mdat"
-tag_xml = "xml "
-tag_hdlr = "hdlr"
-tag_ftyp = "ftyp"
+TAG_STCO = "stco"
+TAG_CO64 = "co64"
+TAG_FREE = "free"
+TAG_MDAT = "mdat"
+TAG_XML = "xml "
+TAG_HDLR = "hdlr"
+TAG_FTYP = "ftyp"
 
 # Container types.
-tag_moov = "moov"
-tag_udta = "udta"
-tag_meta = "meta"
-tag_trak = "trak"
-tag_mdia = "mdia"
-tag_minf = "minf"
-tag_stbl = "stbl"
-tag_uuid = "uuid"
+TAG_MOOV = "moov"
+TAG_UDTA = "udta"
+TAG_META = "meta"
+TAG_TRAK = "trak"
+TAG_MDIA = "mdia"
+TAG_MINF = "minf"
+TAG_STBL = "stbl"
+TAG_UUID = "uuid"
 
-containers = [tag_moov, tag_udta, tag_trak,
-              tag_mdia, tag_minf, tag_stbl]
+containers = [TAG_MOOV, TAG_UDTA, TAG_TRAK,
+              TAG_MDIA, TAG_MINF, TAG_STBL]
 
 
 class box:
@@ -135,9 +137,9 @@ class box:
         if self.content_start():
             in_fh.seek(self.content_start())
 
-        if (self.name == tag_stco):
+        if (self.name == TAG_STCO):
             stco_copy(in_fh, out_fh, self, delta)
-        elif (self.name == tag_co64):
+        elif (self.name == TAG_CO64):
             co64_copy(in_fh, out_fh, self, delta)
         elif (self.contents is not None):
             out_fh.write(self.contents)
@@ -479,7 +481,7 @@ class mpeg4(container_box):
         self.resize()
         new_position = 0
         for element in self.contents:
-            if element.name == tag_mdat:
+            if element.name == TAG_MDAT:
                 new_position += element.header_size
                 break
             new_position += element.size()

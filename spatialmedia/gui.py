@@ -21,9 +21,13 @@ Tool for examining and injecting spherical metadata into MP4 files.
 Naming conventions are styled to match TKinter naming conventions.
 """
 
-from spherical import InjectMetadata
-from spherical import ParseMetadata
-from spherical import GenerateSphericalXML
+import sys
+import os
+path = os.path.dirname(sys.modules[__name__].__file__)
+path = os.path.join(path, '..')
+sys.path.insert(0, path)
+
+from spatialmedia import spherical
 import tkFileDialog
 
 try:
@@ -42,15 +46,15 @@ class Application(Frame):
         self.in_file = tkFileDialog.askopenfilename(**self.open_options)
         if self.in_file:
             self.set_text("Opened file: %s\n" % self.in_file)
-            ParseMetadata(self.in_file, self.append_text)
+            spherical.ParseMetadata(self.in_file, self.append_text)
 
     def inject(self):
         """Inject metadata into a new save file."""
         self.save_file = tkFileDialog.asksaveasfilename(**self.open_options)
         if self.save_file:
             self.set_text("Saved file to: %s\n" % self.save_file)
-            xml = GenerateSphericalXML()
-            InjectMetadata(self.in_file, self.save_file, xml, self.append_text)
+            xml = spherical.GenerateSphericalXML()
+            spherical.InjectMetadata(self.in_file, self.save_file, xml, self.append_text)
 
     def set_text(self, text):
         """Updates text box contents."""
@@ -65,7 +69,7 @@ class Application(Frame):
         self.textbox.insert(END, text)
         self.textbox.config(state=DISABLED)
 
-    def createWidgets(self):
+    def create_widgets(self):
         """Sets up GUI contents."""
         self.textbox = Text(self)
         self.textbox.config(state=DISABLED)
@@ -97,7 +101,7 @@ class Application(Frame):
         self.open_options["filetypes"] = [("Mp4", ".mp4")]
 
         Frame.__init__(self, master)
-        self.createWidgets()
+        self.create_widgets()
         self.pack()
         self.open()
         if not self.in_file:

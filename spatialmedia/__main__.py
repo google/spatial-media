@@ -28,9 +28,7 @@ path = os.path.dirname(sys.modules[__name__].__file__)
 path = os.path.join(path, '..')
 sys.path.insert(0, path)
 
-from spatialmedia.spherical import InjectMetadata
-from spatialmedia.spherical import ParseMetadata
-from spatialmedia.spherical import GenerateSphericalXML
+from spatialmedia import spherical
 import re
 
 def console(contents):
@@ -69,19 +67,19 @@ def main():
 
     (opts, args) = parser.parse_args()
 
-    spherical_xml = GenerateSphericalXML(opts.stereo, opts.crop)
+    spherical_xml = spherical.GenerateSphericalXML(opts.stereo, opts.crop)
 
     if opts.inject:
         if len(args) != 2:
             console("Injecting metadata requires both"
                     "a source and destination.")
             return
-        InjectMetadata(args[0], args[1], spherical_xml, console)
+        spherical.InjectMetadata(args[0], args[1], spherical_xml, console)
         return
 
     if len(args) > 0:
         for src in args:
-            ParseMetadata(src, console)
+            spherical.ParseMetadata(src, console)
         return
 
     parser.print_help()
