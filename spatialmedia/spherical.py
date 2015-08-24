@@ -57,8 +57,10 @@ SPHERICAL_XML_CONTENTS_LEFT_RIGHT = \
 
 # Parameter order matches that of the crop option.
 SPHERICAL_XML_CONTENTS_CROP_FORMAT = \
-    "<GSpherical:CroppedAreaImageWidthPixels>{0}</GSpherical:CroppedAreaImageWidthPixels>"\
-    "<GSpherical:CroppedAreaImageHeightPixels>{1}</GSpherical:CroppedAreaImageHeightPixels>"\
+    "<GSpherical:CroppedAreaImageWidthPixels>{0}"\
+    "</GSpherical:CroppedAreaImageWidthPixels>"\
+    "<GSpherical:CroppedAreaImageHeightPixels>{1}"\
+    "</GSpherical:CroppedAreaImageHeightPixels>"\
     "<GSpherical:FullPanoWidthPixels>{2}</GSpherical:FullPanoWidthPixels>"\
     "<GSpherical:FullPanoHeightPixels>{3}</GSpherical:FullPanoHeightPixels>"\
     "<GSpherical:CroppedAreaLeftPixels>{4}</GSpherical:CroppedAreaLeftPixels>"\
@@ -135,7 +137,7 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if (in_fh.read(4) == mpeg.constants.TRAK_TYPE_VIDE):
+                    if in_fh.read(4) == mpeg.constants.TRAK_TYPE_VIDE:
                         added = True
                         break
 
@@ -162,7 +164,7 @@ def ParseSphericalXML(contents, console):
     except xml.etree.ElementTree.ParseError:
         try:
             index = contents.find("<rdf:SphericalVideo")
-            if (index != -1):
+            if index != -1:
                 index += len("<rdf:SphericalVideo")
                 contents = contents[:index] + rdf_prefix + contents[index:]
             parsed_xml = xml.etree.ElementTree.XML(contents)
@@ -181,7 +183,7 @@ def ParseSphericalXML(contents, console):
             sphericalDictionary[SPHERICAL_TAGS[child.tag]] = child.text
         else:
             tag = child.tag
-            if (child.tag[:len(spherical_prefix)] == spherical_prefix):
+            if child.tag[:len(spherical_prefix)] == spherical_prefix:
                 tag = child.tag[len(spherical_prefix):]
             console("\t\tUnknown: " + tag + " = " + child.text)
 
@@ -230,7 +232,7 @@ def ParseMpeg4(input_file, console):
                 "permission.")
 
     mpeg4_file = mpeg.load(in_fh)
-    if (mpeg4_file is None):
+    if mpeg4_file is None:
         console("File could not be opened.")
         return
 
@@ -245,7 +247,7 @@ def InjectMpeg4(input_file, output_file, metadata, console):
                 "permission.")
 
     mpeg4_file = mpeg.load(in_fh)
-    if (mpeg4_file is None):
+    if mpeg4_file is None:
         console("File could not be opened.")
 
     if not mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
@@ -272,7 +274,7 @@ def ParseMetadata(src, console):
 
     console("Processing: " + infile)
 
-    if (os.path.splitext(infile)[1].lower() == ".mp4"):
+    if os.path.splitext(infile)[1].lower() == ".mp4":
         return ParseMpeg4(infile, console)
 
     console("Unknown file type")
@@ -283,7 +285,7 @@ def InjectMetadata(src, dest, metadata, console):
     infile = os.path.abspath(src)
     outfile = os.path.abspath(dest)
 
-    if (infile == outfile):
+    if infile == outfile:
         return "Input and output cannot be the same"
 
     try:
@@ -296,7 +298,7 @@ def InjectMetadata(src, dest, metadata, console):
 
     console("Processing: " + infile)
 
-    if (os.path.splitext(infile)[1].lower() == ".mp4"):
+    if os.path.splitext(infile)[1].lower() == ".mp4":
         InjectMpeg4(infile, outfile, metadata, console)
         return
 
@@ -315,7 +317,7 @@ def GenerateSphericalXML(stereo=None, crop=None):
     if crop:
         crop_match = re.match(crop_regex, crop)
         if not crop_match:
-            console("Error: Invalid crop params: {crop}".format(crop=crop))
+            print "Error: Invalid crop params: {crop}".format(crop=crop)
             return
         else:
             cropped_width_pixels = int(crop_match.group(1))
@@ -327,20 +329,20 @@ def GenerateSphericalXML(stereo=None, crop=None):
 
             # This should never happen based on the crop regex.
             if full_width_pixels <= 0 or full_height_pixels <= 0:
-                console("Error with crop params: full pano dimensions are "
+                print "Error with crop params: full pano dimensions are "\
                         "invalid: width = {width} height = {height}".format(
                             width=full_width_pixels,
-                            height=full_height_pixels))
+                            height=full_height_pixels)
                 return
 
             if (cropped_width_pixels <= 0 or
                     cropped_height_pixels <= 0 or
                     cropped_width_pixels > full_width_pixels or
                     cropped_height_pixels > full_height_pixels):
-                console("Error with crop params: cropped area dimensions are "
+                print "Error with crop params: cropped area dimensions are "\
                         "invalid: width = {width} height = {height}".format(
                             width=cropped_width_pixels,
-                            height=cropped_height_pixels))
+                            height=cropped_height_pixels)
                 return
 
             # We are pretty restrictive and don't allow anything strange. There
@@ -353,14 +355,14 @@ def GenerateSphericalXML(stereo=None, crop=None):
                     cropped_offset_top_pixels < 0 or
                     total_width > full_width_pixels or
                     total_height > full_height_pixels):
-                    console("Error with crop params: cropped area offsets are "
-                            "invalid: left = {left} top = {top} "
-                            "left+cropped width: {total_width} "
+                    print "Error with crop params: cropped area offsets are "\
+                            "invalid: left = {left} top = {top} "\
+                            "left+cropped width: {total_width} "\
                             "top+cropped height: {total_height}".format(
                                 left=cropped_offset_left_pixels,
                                 top=cropped_offset_top_pixels,
                                 total_width=total_width,
-                                total_height=total_height))
+                                total_height=total_height)
                     return
 
             additional_xml += SPHERICAL_XML_CONTENTS_CROP_FORMAT.format(

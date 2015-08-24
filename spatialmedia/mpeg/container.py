@@ -26,8 +26,9 @@ import struct
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 
+
 def load(fh, position=None, end=None):
-    if (position is None):
+    if position is None:
         position = fh.tell()
 
     fh.seek(position)
@@ -35,18 +36,18 @@ def load(fh, position=None, end=None):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
 
-    if not (name in constants.CONTAINERS_LIST):
-      return box.load(fh, position, end)
+    if name not in constants.CONTAINERS_LIST:
+        return box.load(fh, position, end)
 
-    if (size == 1):
+    if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
         header_size = 16
 
-    if (size < 8):
+    if size < 8:
         print "Error, invalid size in ", name, " at ", position
         return None
 
-    if (position + size > end):
+    if (position + size) > end:
         print ("Error: Container box size exceeds bounds.")
         return None
 
@@ -58,22 +59,24 @@ def load(fh, position=None, end=None):
     new_box.contents = load_multiple(
         fh, position + header_size, position + size)
 
-    if (new_box.contents is None):
+    if new_box.contents is None:
         return None
 
     return new_box
+
 
 def load_multiple(fh, position=None, end=None):
     loaded = list()
     while (position < end):
         new_box = load(fh, position, end)
-        if (new_box is None):
+        if new_box is None:
             print ("Error, failed to load box.")
             return None
         loaded.append(new_box)
         position = new_box.position + new_box.size()
 
     return loaded
+
 
 class Container(box.Box):
     """MPEG4 container box contents / behaviour."""
@@ -84,7 +87,6 @@ class Container(box.Box):
         self.header_size = 0
         self.content_size = 0
         self.contents = list()
-
 
     def resize(self):
         """Recomputes the box size and recurses on contents."""
@@ -136,8 +138,8 @@ class Container(box.Box):
           Int, increased size of container.
         """
         for content in self.contents:
-            if (content.name == element.name):
-                if (isinstance(content, container_leaf)):
+            if content.name == element.name:
+                if isinstance(content, container_leaf):
                     return content.merge(element)
                 print "Error, cannot merge leafs."
                 return False
@@ -160,22 +162,20 @@ class Container(box.Box):
         return True
 
     def save(self, in_fh, out_fh, delta):
-        """Saves box structure to out_fh reading uncached content from
-        in_fh.
+        """Saves box to out_fh reading uncached content from in_fh.
 
         Args:
           in_fh: file handle, source of uncached file contents.
           out_fh: file_hande, destination for saved file.
           delta: int, file change size for updating stco and co64 files.
         """
-        if (self.header_size == 16):
+        if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
             out_fh.write(self.name)
             out_fh.write(struct.pack(">Q", self.size()))
-        elif(self.header_size == 8):
+        elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
             out_fh.write(self.name)
 
         for element in self.contents:
             element.save(in_fh, out_fh, delta)
-

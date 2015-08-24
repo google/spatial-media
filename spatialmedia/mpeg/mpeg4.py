@@ -24,6 +24,7 @@ from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 from spatialmedia.mpeg import container
 
+
 def load(fh):
     """Load the mpeg4 file structure of a file.
 
@@ -130,4 +131,3 @@ class Mpeg4(container.Container):
 
         for element in self.contents:
             element.save(in_fh, out_fh, delta)
-

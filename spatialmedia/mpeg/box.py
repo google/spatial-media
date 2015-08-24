@@ -24,6 +24,7 @@ from spatialmedia.mpeg import constants
 
 import struct
 
+
 def load(fh, position=None, end=None):
     """Loads the box located at a position in a mp4 file.
 
@@ -34,7 +35,7 @@ def load(fh, position=None, end=None):
     Returns:
       box: box, box from loaded file location or None.
     """
-    if (position is None):
+    if position is None:
         position = fh.tell()
 
     fh.seek(position)
@@ -42,15 +43,15 @@ def load(fh, position=None, end=None):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
 
-    if (size == 1):
+    if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
         header_size = 16
 
-    if (size < 8):
+    if size < 8:
         print "Error, invalid size in ", name, " at ", position
         return None
 
-    if (position + size > end):
+    if (position + size) > end:
         print ("Error: Leaf box size exceeds bounds.")
         return None
 
@@ -62,6 +63,7 @@ def load(fh, position=None, end=None):
     new_box.contents = None
 
     return new_box
+
 
 class Box:
     """MPEG4 box contents and behaviour true for all boxes."""
@@ -77,8 +79,7 @@ class Box:
         return self.position + self.header_size
 
     def save(self, in_fh, out_fh, delta):
-        """Save box contents prioritizing set contents and specialized
-        behaviour for stco/co64 boxes.
+        """Save box contents prioritizing set contents.
 
         Args:
           in_fh: file handle, source to read box contents from.
@@ -106,8 +107,7 @@ class Box:
             tag_copy(in_fh, out_fh, self.content_size)
 
     def set(self, new_contents):
-        """Sets the box contents. This can be used to change a box's
-        contents"""
+        """Sets / overwrites the box contents."""
         contents = new_contents
         content_size = len(contents)
 
@@ -176,6 +176,7 @@ def index_copy(in_fh, out_fh, box, mode, mode_length, delta=0):
         new_contents.append(struct.pack(mode, content))
     out_fh.write("".join(new_contents))
 
+
 def stco_copy(in_fh, out_fh, box, delta=0):
     """Copy for stco box.
 
@@ -198,7 +199,3 @@ def co64_copy(in_fh, out_fh, box, delta=0):
       delta: int, offset change for index entries.
     """
     index_copy(in_fh, out_fh, box, ">Q", 8, delta)
-
-
-
-

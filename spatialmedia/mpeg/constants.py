@@ -41,7 +41,11 @@ TAG_MINF = "minf"
 TAG_STBL = "stbl"
 TAG_UUID = "uuid"
 
-CONTAINERS_LIST = [TAG_MOOV, TAG_UDTA, TAG_TRAK,
-              TAG_MDIA, TAG_MINF, TAG_STBL]
-
-
+CONTAINERS_LIST = [
+    TAG_MDIA,
+    TAG_MINF,
+    TAG_MOOV,
+    TAG_STBL,
+    TAG_TRAK,
+    TAG_UDTA,
+    ]
