@@ -15,12 +15,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
+"""MPEG processing classes.
 
-__all__ = ["mpeg", "spherical"]
+Tool for loading mpeg4 files and manipulating atoms.
+"""
 
-import spatialmedia.mpeg
-import spatialmedia.spherical
+TRAK_TYPE_VIDE = "vide"
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Leaf types.
+TAG_STCO = "stco"
+TAG_CO64 = "co64"
+TAG_FREE = "free"
+TAG_MDAT = "mdat"
+TAG_XML = "xml "
+TAG_HDLR = "hdlr"
+TAG_FTYP = "ftyp"
+
+# Container types.
+TAG_MOOV = "moov"
+TAG_UDTA = "udta"
+TAG_META = "meta"
+TAG_TRAK = "trak"
+TAG_MDIA = "mdia"
+TAG_MINF = "minf"
+TAG_STBL = "stbl"
+TAG_UUID = "uuid"
+
+CONTAINERS_LIST = [TAG_MOOV, TAG_UDTA, TAG_TRAK,
+              TAG_MDIA, TAG_MINF, TAG_STBL]
+
+

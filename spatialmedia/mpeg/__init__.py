@@ -15,12 +15,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import sys
+import spatialmedia.mpeg.box
+import spatialmedia.mpeg.constants
+import spatialmedia.mpeg.container
+import spatialmedia.mpeg.mpeg4
 
-__all__ = ["mpeg", "spherical"]
+load = mpeg4.load
 
-import spatialmedia.mpeg
-import spatialmedia.spherical
+__all__ = ["box", "mpeg4", "container", "constants"]
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))

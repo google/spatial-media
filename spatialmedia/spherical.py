@@ -103,9 +103,9 @@ def spherical_uuid(metadata):
     Returns:
       uuid_leaf: a box containing spherical metadata.
     """
-    uuid_leaf = mpeg.box()
+    uuid_leaf = mpeg.box.Box()
     assert(len(SPHERICAL_UUID_ID) == 16)
-    uuid_leaf.name = mpeg.TAG_UUID
+    uuid_leaf.name = mpeg.constants.TAG_UUID
     uuid_leaf.header_size = 8
     uuid_leaf.content_size = 0
 
@@ -124,18 +124,18 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
       metadata: string, xml metadata to inject into spherical tag.
     """
     for element in mpeg4_file.moov_box.contents:
-        if element.name == mpeg.TAG_TRAK:
+        if element.name == mpeg.constants.TAG_TRAK:
             added = False
-            element.remove(mpeg.TAG_UUID)
+            element.remove(mpeg.constants.TAG_UUID)
             for sub_element in element.contents:
-                if sub_element.name != mpeg.TAG_MDIA:
+                if sub_element.name != mpeg.constants.TAG_MDIA:
                     continue
                 for mdia_sub_element in sub_element.contents:
-                    if mdia_sub_element.name != mpeg.TAG_HDLR:
+                    if mdia_sub_element.name != mpeg.constants.TAG_HDLR:
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if (in_fh.read(4) == mpeg.TRAK_TYPE_VIDE):
+                    if (in_fh.read(4) == mpeg.constants.TRAK_TYPE_VIDE):
                         added = True
                         break
 
@@ -201,12 +201,12 @@ def ParseSphericalMpeg4(mpeg4_file, fh, console):
     metadataSets = dict()
     track_num = 0
     for element in mpeg4_file.moov_box.contents:
-        if element.name == mpeg.TAG_TRAK:
+        if element.name == mpeg.constants.TAG_TRAK:
             trackName = "Track %d" % track_num
             console("\t%s" % trackName)
             track_num += 1
             for sub_element in element.contents:
-                if sub_element.name == mpeg.TAG_UUID:
+                if sub_element.name == mpeg.constants.TAG_UUID:
                     if sub_element.contents is not None:
                         sub_element_id = sub_element.contents[:16]
                     else:
@@ -229,7 +229,7 @@ def ParseMpeg4(input_file, console):
         console("File: \"" + input_file + "\" does not exist or do not have "
                 "permission.")
 
-    mpeg4_file = mpeg.mpeg4.load(in_fh)
+    mpeg4_file = mpeg.load(in_fh)
     if (mpeg4_file is None):
         console("File could not be opened.")
         return
@@ -244,7 +244,7 @@ def InjectMpeg4(input_file, output_file, metadata, console):
         console("File: \"" + input_file + "\" does not exist or do not have "
                 "permission.")
 
-    mpeg4_file = mpeg.mpeg4.load(in_fh)
+    mpeg4_file = mpeg.load(in_fh)
     if (mpeg4_file is None):
         console("File could not be opened.")
 
