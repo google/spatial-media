@@ -103,7 +103,7 @@ def spherical_uuid(metadata):
     Returns:
       uuid_leaf: a box containing spherical metadata.
     """
-    uuid_leaf = mpeg.box.Box()
+    uuid_leaf = mpeg.Box()
     assert(len(SPHERICAL_UUID_ID) == 16)
     uuid_leaf.name = mpeg.constants.TAG_UUID
     uuid_leaf.header_size = 8

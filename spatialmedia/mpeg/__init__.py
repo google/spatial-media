@@ -22,5 +22,9 @@ import spatialmedia.mpeg.mpeg4
 
 load = mpeg4.load
 
+Box = box.Box;
+Container = container.Container
+Mpeg4 = mpeg4.Mpeg4;
+
 __all__ = ["box", "mpeg4", "container", "constants"]
 
