@@ -103,7 +103,6 @@ class Container(box.Box):
         print "{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2)
 
         size = len(self.contents)
-        this_indent = indent
         for i in range(size):
             next_indent = indent
 
@@ -124,7 +123,7 @@ class Container(box.Box):
         new_contents = []
         self.content_size = 0
         for element in self.contents:
-            if not (element.name == tag):
+            if element.name != tag:
                 new_contents.append(element)
                 if isinstance(element, Container):
                     element.remove(tag)

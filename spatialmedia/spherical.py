@@ -318,7 +318,7 @@ def GenerateSphericalXML(stereo=None, crop=None):
         crop_match = re.match(crop_regex, crop)
         if not crop_match:
             print "Error: Invalid crop params: {crop}".format(crop=crop)
-            return
+            return False
         else:
             cropped_width_pixels = int(crop_match.group(1))
             cropped_height_pixels = int(crop_match.group(2))
@@ -333,7 +333,7 @@ def GenerateSphericalXML(stereo=None, crop=None):
                         "invalid: width = {width} height = {height}".format(
                             width=full_width_pixels,
                             height=full_height_pixels)
-                return
+                return False
 
             if (cropped_width_pixels <= 0 or
                     cropped_height_pixels <= 0 or
@@ -343,7 +343,7 @@ def GenerateSphericalXML(stereo=None, crop=None):
                         "invalid: width = {width} height = {height}".format(
                             width=cropped_width_pixels,
                             height=cropped_height_pixels)
-                return
+                return False
 
             # We are pretty restrictive and don't allow anything strange. There
             # could be use-cases for a horizontal offset that essentially
@@ -363,7 +363,7 @@ def GenerateSphericalXML(stereo=None, crop=None):
                                 top=cropped_offset_top_pixels,
                                 total_width=total_width,
                                 total_height=total_height)
-                    return
+                    return False
 
             additional_xml += SPHERICAL_XML_CONTENTS_CROP_FORMAT.format(
                 cropped_width_pixels, cropped_height_pixels,

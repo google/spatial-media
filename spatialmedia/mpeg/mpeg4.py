@@ -41,11 +41,10 @@ def load(fh):
     size = fh.tell()
     contents = container.load_multiple(fh, 0, size)
 
-    if (contents is None):
+    if not contents:
         print "Error, failed to load .mp4 file."
         return None
-
-    if (len(contents) == 0):
+    elif len(contents) == 0:
         print ("Error, no boxes found.")
         return None
 
@@ -58,16 +57,16 @@ def load(fh):
         if (element.name == "free"):
             loaded_mpeg4.free_box = element
         if (element.name == "mdat"
-                and loaded_mpeg4.first_mdat_box is None):
+                and not loaded_mpeg4.first_mdat_box):
             loaded_mpeg4.first_mdat_box = element
         if (element.name == "ftyp"):
             loaded_mpeg4.ftyp_box = element
 
-    if (loaded_mpeg4.moov_box is None):
+    if not loaded_mpeg4.moov_box:
         print ("Error, file does not contain moov box.")
         return None
 
-    if (loaded_mpeg4.first_mdat_box is None):
+    if not loaded_mpeg4.first_mdat_box:
         print ("Error, file does not contain mdat box.")
         return None
 
@@ -84,7 +83,7 @@ def load(fh):
 
 
 class Mpeg4(container.Container):
-    """Specialized behaviour for the root mpeg4 container"""
+    """Specialized behaviour for the root mpeg4 container."""
 
     def __init__(self):
         self.contents = list()
