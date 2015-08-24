@@ -209,14 +209,14 @@ def ParseSphericalMpeg4(mpeg4_file, fh, console):
             track_num += 1
             for sub_element in element.contents:
                 if sub_element.name == mpeg.constants.TAG_UUID:
-                    if sub_element.contents is not None:
+                    if sub_element.contents:
                         sub_element_id = sub_element.contents[:16]
                     else:
                         fh.seek(sub_element.content_start())
                         sub_element_id = fh.read(16)
 
                     if sub_element_id == SPHERICAL_UUID_ID:
-                        if sub_element.contents is not None:
+                        if sub_element.contents:
                             contents = sub_element.contents[16:]
                         else:
                             contents = fh.read(sub_element.content_size - 16)

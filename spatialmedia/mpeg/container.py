@@ -48,7 +48,7 @@ def load(fh, position=None, end=None):
         return None
 
     if (position + size) > end:
-        print ("Error: Container box size exceeds bounds.")
+        print "Error: Container box size exceeds bounds."
         return None
 
     new_box = Container()
@@ -100,7 +100,7 @@ class Container(box.Box):
         """Prints the box structure and recurses on contents."""
         size1 = self.header_size
         size2 = self.content_size
-        print indent, self.name, " [", size1, ", ", size2, " ]"
+        print "{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2)
 
         size = len(self.contents)
         this_indent = indent

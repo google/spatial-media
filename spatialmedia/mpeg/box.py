@@ -101,7 +101,7 @@ class Box:
             stco_copy(in_fh, out_fh, self, delta)
         elif self.name == constants.TAG_CO64:
             co64_copy(in_fh, out_fh, self, delta)
-        elif self.contents is not None:
+        elif self.contents:
             out_fh.write(self.contents)
         else:
             tag_copy(in_fh, out_fh, self.content_size)
@@ -123,7 +123,7 @@ class Box:
         """Prints the box structure."""
         size1 = self.header_size
         size2 = self.content_size
-        print indent, self.name, " [", size1, ", ", size2, " ]"
+        print "{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2)
 
 
 def tag_copy(in_fh, out_fh, size):
