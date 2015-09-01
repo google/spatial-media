@@ -26,7 +26,7 @@ import StringIO
 import struct
 
 
-def load(fh, position=None, end=None):
+def load(fh, position, end):
     """Loads the box located at a position in a mp4 file.
 
     Args:
@@ -66,7 +66,7 @@ def load(fh, position=None, end=None):
     return new_box
 
 
-class Box:
+class Box(object):
     """MPEG4 box contents and behaviour true for all boxes."""
 
     def __init__(self):
@@ -109,8 +109,8 @@ class Box:
 
     def set(self, new_contents):
         """Sets / overwrites the box contents."""
-        contents = new_contents
-        content_size = len(contents)
+        self.contents = new_contents
+        self.content_size = len(contents)
 
     def size(self):
         """Total size of a box.
