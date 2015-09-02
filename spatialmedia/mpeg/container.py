@@ -27,7 +27,7 @@ from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 
 
-def load(fh, position=None, end=None):
+def load(fh, position, end):
     if position is None:
         position = fh.tell()
 
