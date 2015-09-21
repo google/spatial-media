@@ -116,7 +116,9 @@ class Application(Frame):
 
     def action_inject(self):
         """Inject metadata into a new save file."""
-        self.save_file = tkFileDialog.asksaveasfilename(**self.open_options)
+        baseFileName = os.path.splitext(ntpath.basename(self.in_file))[0]
+        self.save_options["initialfile"] = baseFileName + "_injected.mp4"
+        self.save_file = tkFileDialog.asksaveasfilename(**self.save_options)
         if not self.save_file:
           return
 
@@ -126,13 +128,12 @@ class Application(Frame):
         self.master.after(100, self.action_inject_delay)
 
     def action_set_spherical(self):
-      self.update_state()
+        self.update_state()
 
     def action_set_3d(self):
-      self.update_state()
+        self.update_state()
 
     def enable_state(self):
-        self.button_open.configure(state="normal")
         self.button_open.configure(state="normal")
         self.button_quit.configure(state="normal")
 
@@ -170,13 +171,6 @@ class Application(Frame):
         column = 0
 
         titleFont = ('time', 12, 'bold')
-
-        # Title
-        self.label_title = Label(self)
-        self.label_title.config(font=titleFont)
-        self.label_title["text"] = "Spherical Metadata Injector"
-        self.label_title.grid(row=row, column=column, columnspan=3, padx=14, pady=2)
-        row += 1
 
         # Spherical Checkbox
         self.label_spherical = Label(self)
@@ -252,17 +246,17 @@ class Application(Frame):
         self.open_options = {}
         self.open_options["filetypes"] = [("Mp4", ".mp4")]
 
+        self.save_options = {}
+        self.save_options["filetypes"] = [("Mp4", ".mp4")]
+
         Frame.__init__(self, master)
         self.create_widgets()
-        self.update_state()
         self.pack()
 
         self.in_file = None
-        self.action_open()
-        if not self.in_file:
-            master.destroy()
-            return
-
+        self.disable_state()
+        self.enable_state()
+        master.focus_force()
 
 def main():
     root = Tk()
