@@ -259,7 +259,9 @@ class Application(Frame):
         self.in_file = None
         self.disable_state()
         self.enable_state()
+        master.attributes("-topmost", True)
         master.focus_force()
+        self.after(50, lambda: master.attributes("-topmost", False))
 
 def main():
     root = Tk()
