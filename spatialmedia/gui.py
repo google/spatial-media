@@ -21,8 +21,8 @@ Tool for examining and injecting spherical metadata into MP4 files.
 """
 
 import ntpath
-import sys
 import os
+import sys
 path = os.path.dirname(sys.modules[__name__].__file__)
 path = os.path.join(path, '..')
 sys.path.insert(0, path)
@@ -242,12 +242,15 @@ class Application(Frame):
 
     def __init__(self, master=None):
         master.wm_title("Spherical Metadata Injector")
+        master.config(menu=Menu(master))
         self.title = "Spherical Metadata Tool"
         self.open_options = {}
         self.open_options["filetypes"] = [("Mp4", ".mp4")]
+        self.open_options["defaultextension"] =".mp4"
 
         self.save_options = {}
         self.save_options["filetypes"] = [("Mp4", ".mp4")]
+        self.save_options["defaultextension"] =".mp4"
 
         Frame.__init__(self, master)
         self.create_widgets()
