@@ -39,14 +39,14 @@ except ImportError:
         print("Tkinter library is not available.")
         exit(0)
 
+
 class Console(object):
-  def __init__(self):
-    self.log = []
+    def __init__(self):
+        self.log = []
 
-  def append(self, text):
-    print text
-    self.log.append(text)
-
+    def append(self, text):
+        print text
+        self.log.append(text)
 
 
 class Application(Frame):
@@ -54,7 +54,7 @@ class Application(Frame):
         """Triggers open file diaglog, reading a new file's metadata."""
         tmp_in_file = tkFileDialog.askopenfilename(**self.open_options)
         if not tmp_in_file:
-          return
+            return
         self.in_file = tmp_in_file
 
         self.set_message("Opened file: %s\n" % ntpath.basename(self.in_file))
@@ -63,14 +63,14 @@ class Application(Frame):
         metadata = spherical.parse_metadata(self.in_file, console.append)
 
         for line in console.log:
-          print line
-          if "Error" in line:
-            self.set_error("Failed to load file %s" % ntpath.basename(self.in_file))
-            self.var_spherical.set(0)
-            self.disable_state()
-            self.button_open.configure(state="normal")
-            self.button_quit.configure(state="normal")
-            return
+            if "Error" in line:
+                self.set_error("Failed to load file %s"
+                               % ntpath.basename(self.in_file))
+                self.var_spherical.set(0)
+                self.disable_state()
+                self.button_open.configure(state="normal")
+                self.button_quit.configure(state="normal")
+                return
 
         self.enable_state()
         self.checkbox_spherical.configure(state="normal")
@@ -82,34 +82,37 @@ class Application(Frame):
             metadata = metadata.itervalues().next()
             self.var_spherical.set(1)
 
-            self.set_message("Metadata found in %s\n" % ntpath.basename(self.in_file))
-            if "Spherical" in metadata and metadata["Spherical"] == "true":
+            self.set_message("Metadata found in %s\n"
+                             % ntpath.basename(self.in_file))
+            if metadata.get("Spherical", "") == "true":
                 self.var_spherical.set(1)
             else:
-              self.var_spherical.set(0)
+                self.var_spherical.set(0)
 
-            if "StereoMode" in metadata and metadata["StereoMode"] == "top-bottom":
+            if metadata.get("StereoMode", "") == "top-bottom":
                 self.var_3d.set(1)
             else:
                 self.var_3d.set(0)
         else:
-              self.set_message("No metadata found in %s\n" % ntpath.basename(self.in_file))
-              self.var_spherical.set(0)
-              self.var_3d.set(0)
+            self.set_message("No metadata found in %s\n"
+                             % ntpath.basename(self.in_file))
+            self.var_spherical.set(0)
+            self.var_3d.set(0)
 
         self.update_state()
-
 
     def action_inject_delay(self):
         stereo = None
         if (self.var_3d.get()):
-          stereo = "top-bottom"
+            stereo = "top-bottom"
 
         xml = spherical.generate_spherical_xml(stereo=stereo)
 
         console = Console()
-        spherical.inject_metadata(self.in_file, self.save_file, xml, console.append)
-        self.set_message("Successfully saved file to %s\n" % ntpath.basename(self.save_file))
+        spherical.inject_metadata(
+            self.in_file, self.save_file, xml, console.append)
+        self.set_message("Successfully saved file to %s\n"
+                         % ntpath.basename(self.save_file))
         self.button_open.configure(state="normal")
         self.button_quit.configure(state="normal")
         self.update_state()
@@ -120,9 +123,9 @@ class Application(Frame):
         self.save_options["initialfile"] = baseFileName + "_injected.mp4"
         self.save_file = tkFileDialog.asksaveasfilename(**self.save_options)
         if not self.save_file:
-          return
+            return
 
-        self.set_message("Saving file to %s\n" % ntpath.basename(self.save_file))
+        self.set_message("Saving file to %s" % ntpath.basename(self.save_file))
 
         self.disable_state()
         self.master.after(100, self.action_inject_delay)
@@ -176,10 +179,11 @@ class Application(Frame):
         self.label_spherical = Label(self)
         self.label_spherical["text"] = "Spherical"
         self.label_spherical.grid(row=row, column=column)
-        column +=1
+        column += 1
 
         self.var_spherical = IntVar()
-        self.checkbox_spherical = Checkbutton(self, variable=self.var_spherical)
+        self.checkbox_spherical = \
+            Checkbutton(self, variable=self.var_spherical)
         self.checkbox_spherical["command"] = self.action_set_spherical
         self.checkbox_spherical.grid(row=row, column=column, padx=14, pady=2)
 
@@ -189,7 +193,7 @@ class Application(Frame):
         self.label_3D = Label(self)
         self.label_3D["text"] = "3D Top-bottom"
         self.label_3D.grid(row=row, column=column, padx=14, pady=2)
-        column +=1
+        column += 1
 
         self.var_3d = IntVar()
         self.checkbox_3D = Checkbutton(self, variable=self.var_3d)
@@ -202,7 +206,7 @@ class Application(Frame):
         self.label_projection = Label(self)
         self.label_projection["text"] = "Projection"
         self.label_projection.grid(row=row, column=column, padx=14, pady=2)
-        column+=1
+        column += 1
 
         self.options_projection = Label(self)
         self.options_projection["text"] = "Equirectangular"
@@ -213,7 +217,8 @@ class Application(Frame):
         column = 0
         self.label_message = Label(self)
         self.label_message["text"] = ""
-        self.label_message.grid(row=row, column=column, rowspan=1, columnspan=2, padx=14, pady=2)
+        self.label_message.grid(row=row, column=column, rowspan=1,
+                                columnspan=2, padx=14, pady=2)
 
         # Button Frame
         column = 0
@@ -239,18 +244,17 @@ class Application(Frame):
         self.button_quit["command"] = self.quit
         self.button_quit.grid(row=0, column=2, padx=14, pady=2)
 
-
     def __init__(self, master=None):
         master.wm_title("Spherical Metadata Injector")
         master.config(menu=Menu(master))
         self.title = "Spherical Metadata Tool"
         self.open_options = {}
         self.open_options["filetypes"] = [("Mp4", ".mp4")]
-        self.open_options["defaultextension"] =".mp4"
+        self.open_options["defaultextension"] = ".mp4"
 
         self.save_options = {}
         self.save_options["filetypes"] = [("Mp4", ".mp4")]
-        self.save_options["defaultextension"] =".mp4"
+        self.save_options["defaultextension"] = ".mp4"
 
         Frame.__init__(self, master)
         self.create_widgets()
@@ -262,6 +266,7 @@ class Application(Frame):
         master.attributes("-topmost", True)
         master.focus_force()
         self.after(50, lambda: master.attributes("-topmost", False))
+
 
 def main():
     root = Tk()
