@@ -77,6 +77,8 @@ class Application(Frame):
 
         if not metadata:
             self.set_message("No metadata found.")
+            self.var_spherical.set(0)
+            self.var_3d.set(0)
 
         if metadata:
             metadata = metadata.itervalues().next()
@@ -93,11 +95,6 @@ class Application(Frame):
                 self.var_3d.set(1)
             else:
                 self.var_3d.set(0)
-        else:
-            self.set_message("No metadata found in %s\n"
-                             % ntpath.basename(self.in_file))
-            self.var_spherical.set(0)
-            self.var_3d.set(0)
 
         self.update_state()
 
@@ -127,6 +124,7 @@ class Application(Frame):
 
         self.set_message("Saving file to %s" % ntpath.basename(self.save_file))
 
+        # Launch injection on a separate thread after disabling buttons.
         self.disable_state()
         self.master.after(100, self.action_inject_delay)
 
