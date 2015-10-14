@@ -229,13 +229,13 @@ def parse_mpeg4(input_file, console):
     with open(input_file, "rb") as in_fh:
         mpeg4_file = mpeg.load(in_fh)
         if mpeg4_file is None:
-            console("File could not be opened.")
+            console("Error, file could not be opened.")
             return
 
         console("Loaded file settings")
         return parse_spherical_mpeg4(mpeg4_file, in_fh, console)
 
-    console("File: \"" + input_file + "\" does not exist or do not have "
+    console("Error \"" + input_file + "\" does not exist or do not have "
             "permission.")
 
 
@@ -244,10 +244,10 @@ def inject_mpeg4(input_file, output_file, metadata, console):
 
         mpeg4_file = mpeg.load(in_fh)
         if mpeg4_file is None:
-            console("File could not be opened.")
+            console("Error file could not be opened.")
 
         if not mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
-            console("Failed to insert spherical data")
+            console("Error failed to insert spherical data")
 
         console("Saved file settings")
         parse_spherical_mpeg4(mpeg4_file, in_fh, console)
@@ -256,7 +256,7 @@ def inject_mpeg4(input_file, output_file, metadata, console):
             mpeg4_file.save(in_fh, out_fh)
         return
 
-    console("File: \"" + input_file + "\" does not exist or do not have "
+    console("Error file: \"" + input_file + "\" does not exist or do not have "
             "permission.")
 
 def parse_metadata(src, console):

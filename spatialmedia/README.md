@@ -1,7 +1,19 @@
 # <a href="https://github.com/google/spatial-media/archive/master.zip" download>master.zip</a>
 This is a simple python command line tool for manipulating spherical/360 metadata in MP4 files. This can be used to either validate the 360 metadata in a tagged spherical video or insert the metadata into an existing file.
 
-## Installation
+## Building Standalone Application
+Install pyinstaller
+
+    pip install pyinstaller
+
+Run pyinstaller on the gui.py file
+
+    pyinstall --clean --windowed --name "Spherical Metadata Injector" gui.py
+
+If on Mac OS X modify Spherical\ Metadata\ Injector.app/Contents/info.plist and
+add "High Resolution Capable" key with value "YES".
+
+## Install command line application
 Download the script <a href="https://github.com/google/spatial-media/archive/master.zip" download>master.zip</a> and install <a href="https://www.python.org/download/releases/2.7.7/">Python 2.7</a>.
 
 
