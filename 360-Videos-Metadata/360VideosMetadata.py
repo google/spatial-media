@@ -25,8 +25,6 @@ import os
 import re
 import StringIO
 import struct
-import subprocess
-import sys
 import xml.etree
 import xml.etree.ElementTree
 
@@ -606,31 +604,6 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
     mpeg4_file.resize()
     return True
 
-
-def ffmpeg():
-    """Returns whether ffmpeg is installed on the system.
-
-    Returns:
-      Bool, whether ffmpeg is available on the host system.
-    """
-    program = "ffmpeg"
-
-    def is_exe(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return True
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip("\"")
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return True
-    return False
-
-
 def ParseSphericalMKV(file_name):
     """Extracts spherical metadata from MKV file using ffmpeg. Uses ffmpeg.
 
@@ -770,31 +743,6 @@ def InjectMpeg4(input_file, output_file, metadata):
     in_fh.close()
 
 
-def PrintMKV(input_file):
-    if not ffmpeg():
-        print "please install ffmpeg for mkv support"
-        exit(0)
-
-    print "Loaded file settings"
-    ParseSphericalMKV(input_file)
-
-def InjectMKV(input_file, output_file, metadata):
-    if not ffmpeg():
-        print "please install ffmpeg for mkv support"
-        exit(0)
-
-    process = subprocess.Popen(
-        ["ffmpeg", "-i", input_file, "-metadata:s:v",
-         "spherical-video=" + metadata, "-c:v", "copy",
-         "-c:a", "copy", output_file], stderr=subprocess.PIPE,
-        stdout=subprocess.PIPE)
-    print "Press y <enter> to confirm overwrite"
-    process.wait()
-    stdout, stderr = process.communicate()
-    print "Saved file settings"
-    ParseSphericalMKV(output_file)
-
-
 def PrintMetadata(src):
     infile = os.path.abspath(src)
 
@@ -806,10 +754,6 @@ def PrintMetadata(src):
         return
 
     print "Processing: ", infile, "\n"
-
-    if (os.path.splitext(infile)[1].lower() in [".webm", ".mkv"]):
-        PrintMKV(infile)
-        return
 
     if (os.path.splitext(infile)[1].lower() == ".mp4"):
         PrintMpeg4(infile)
@@ -835,10 +779,6 @@ def InjectMetadata(src, dest, metadata):
         return
 
     print "Processing: ", infile, "\n"
-
-    if (os.path.splitext(infile)[1].lower() in [ ".webm", ".mkv"]):
-        InjectMKV(infile, outfile, metadata)
-        return
 
     if (os.path.splitext(infile)[1].lower() == ".mp4"):
         InjectMpeg4(infile, outfile, metadata)
