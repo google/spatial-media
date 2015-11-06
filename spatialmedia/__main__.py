@@ -17,7 +17,7 @@
 
 """Spherical Metadata Python Tool
 
-Tool for examining and injecting spherical metadata into MKV/MP4 files.
+Tool for examining and injecting spherical metadata into MP4 files.
 """
 
 
