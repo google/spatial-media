@@ -76,7 +76,6 @@ class Application(Frame):
         self.checkbox_spherical.configure(state="normal")
 
         if not metadata:
-            self.set_message("No metadata found.")
             self.var_spherical.set(0)
             self.var_3d.set(0)
 
@@ -84,8 +83,6 @@ class Application(Frame):
             metadata = metadata.itervalues().next()
             self.var_spherical.set(1)
 
-            self.set_message("Metadata found in %s\n"
-                             % ntpath.basename(self.in_file))
             if metadata.get("Spherical", "") == "true":
                 self.var_spherical.set(1)
             else:
@@ -116,8 +113,10 @@ class Application(Frame):
 
     def action_inject(self):
         """Inject metadata into a new save file."""
-        baseFileName = os.path.splitext(ntpath.basename(self.in_file))[0]
-        self.save_options["initialfile"] = baseFileName + "_injected.mp4"
+        splitFilename = os.path.splitext(ntpath.basename(self.in_file))
+        baseFilename = splitFilename[0]
+        extension = splitFilename[1]
+        self.save_options["initialfile"] = baseFilename + "_injected" + extension
         self.save_file = tkFileDialog.asksaveasfilename(**self.save_options)
         if not self.save_file:
             return
@@ -247,12 +246,9 @@ class Application(Frame):
         master.config(menu=Menu(master))
         self.title = "Spherical Metadata Tool"
         self.open_options = {}
-        self.open_options["filetypes"] = [("Mp4", ".mp4")]
-        self.open_options["defaultextension"] = ".mp4"
+        self.open_options["filetypes"] = [("Videos", ("*.mov", "*.mp4"))]
 
         self.save_options = {}
-        self.save_options["filetypes"] = [("Mp4", ".mp4")]
-        self.save_options["defaultextension"] = ".mp4"
 
         Frame.__init__(self, master)
         self.create_widgets()
