@@ -30,6 +30,8 @@ import struct
 import xml.etree
 import xml.etree.ElementTree
 
+MPEG_FILE_EXTENSIONS = [".mp4", ".mov"]
+
 SPHERICAL_UUID_ID = (
     "\xff\xcc\x82\x63\xf8\x55\x4a\x93\x88\x14\x58\x7a\x02\x52\x1f\xdd")
 
@@ -270,8 +272,9 @@ def parse_metadata(src, console):
                 " does not exist or we do not have permission")
 
     console("Processing: " + infile)
+    extension = os.path.splitext(infile)[1].lower()
 
-    if os.path.splitext(infile)[1].lower() == ".mp4":
+    if extension in MPEG_FILE_EXTENSIONS:
         return parse_mpeg4(infile, console)
 
     console("Unknown file type")
@@ -295,7 +298,9 @@ def inject_metadata(src, dest, metadata, console):
 
     console("Processing: " + infile)
 
-    if os.path.splitext(infile)[1].lower() == ".mp4":
+    extension = os.path.splitext(infile)[1].lower()
+
+    if extension in MPEG_FILE_EXTENSIONS:
         inject_mpeg4(infile, outfile, metadata, console)
         return
 
