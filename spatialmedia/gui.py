@@ -113,10 +113,11 @@ class Application(Frame):
 
     def action_inject(self):
         """Inject metadata into a new save file."""
-        splitFilename = os.path.splitext(ntpath.basename(self.in_file))
-        baseFilename = splitFilename[0]
-        extension = splitFilename[1]
-        self.save_options["initialfile"] = baseFilename + "_injected" + extension
+        split_filename = os.path.splitext(ntpath.basename(self.in_file))
+        base_filename = split_filename[0]
+        extension = split_filename[1]
+        self.save_options["initialfile"] = (base_filename
+                                            + "_injected" + extension)
         self.save_file = tkFileDialog.asksaveasfilename(**self.save_options)
         if not self.save_file:
             return
