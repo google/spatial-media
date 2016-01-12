@@ -45,8 +45,8 @@ def main():
                                 "specified files.")
     parser.add_option("-i", "--inject",
                       action="store_true",
-                      help="injects spherical metadata into a MP4/WebM file, "
-                           "saving the result to a new file")
+                      help="injects spherical metadata into a .mp4 or .mov file"
+                           "and saves the result to a new file")
     parser.add_option("-s", "--stereo",
                       type="choice",
                       action="store",
