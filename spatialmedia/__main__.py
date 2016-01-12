@@ -41,11 +41,11 @@ def main():
     """Main function for printing / injecting spherical metadata."""
 
     parser = OptionParser(usage="%prog [options] [files...]\n\n"
-                                "By default prints out spherical metadata from"
+                                "By default prints out spherical metadata from "
                                 "specified files.")
     parser.add_option("-i", "--inject",
                       action="store_true",
-                      help="injects spherical metadata into a .mp4 or .mov file"
+                      help="injects spherical metadata into a .mp4 or .mov file "
                            "and saves the result to a new file")
     parser.add_option("-s", "--stereo",
                       type="choice",
