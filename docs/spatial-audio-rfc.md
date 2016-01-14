@@ -97,7 +97,7 @@ where the SA3D box has the following data:
 ## Appendix 1 - Ambisonics
 The traditional notion of ambisonics is used, where the sound field is represented by spherical harmonics coefficients using the *associated Legendre polynomials* (without *Condon-Shortley phase*) as the basis functions. Thus, the spherical harmonic of degree `l` and order `m` at elevation `E` and azimuth `A` is given by:
 
-    N(l, abs(m)) * P(l, abs(m), sin(A)) * T(m, E)
+    N(l, abs(m)) * P(l, abs(m), sin(E)) * T(m, A)
 
 where:
 - `N(l, m)` is the spherical harmonics normalization function used.
