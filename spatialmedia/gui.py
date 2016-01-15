@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,13 +60,20 @@ class Application(Frame):
         self.set_message("Opened file: %s\n" % ntpath.basename(self.in_file))
 
         console = Console()
-        metadata = spherical.parse_metadata(self.in_file, console.append)
+        parsedMetadata = spherical.parse_metadata(self.in_file, console.append)
+
+        metadata = None
+        audio_metadata = None
+        if parsedMetadata:
+            metadata = parsedMetadata.video
+            audio_metadata = parsedMetadata.audio
 
         for line in console.log:
             if "Error" in line:
                 self.set_error("Failed to load file %s"
                                % ntpath.basename(self.in_file))
                 self.var_spherical.set(0)
+                self.var_spatial_audio.set(0)
                 self.disable_state()
                 self.button_open.configure(state="normal")
                 self.button_quit.configure(state="normal")
@@ -75,9 +82,17 @@ class Application(Frame):
         self.enable_state()
         self.checkbox_spherical.configure(state="normal")
 
+        infile = os.path.abspath(self.in_file)
+        file_extension = os.path.splitext(infile)[1].lower()
+        self.enable_spatial_audio =\
+            True if (file_extension == ".mp4") else False
+
         if not metadata:
             self.var_spherical.set(0)
             self.var_3d.set(0)
+
+        if not audio_metadata:
+            self.var_spatial_audio.set(0)
 
         if metadata:
             metadata = metadata.itervalues().next()
@@ -93,6 +108,12 @@ class Application(Frame):
             else:
                 self.var_3d.set(0)
 
+        if audio_metadata:
+            self.var_spatial_audio.set(1)
+            self.options_ambisonics["text"] =\
+                audio_metadata.get_metadata_string()
+
+
         self.update_state()
 
     def action_inject_delay(self):
@@ -102,9 +123,21 @@ class Application(Frame):
 
         xml = spherical.generate_spherical_xml(stereo=stereo)
 
+        metadata = spherical.Metadata()
+        metadata.video = xml
+
+        if self.var_spatial_audio.get():
+            # Default ambisonics audio metadata
+            audio_metadata = {'ambisonic_order': 1,
+                              'ambisonic_type': 'periphonic',
+                              'ambisonic_normalization': 'SN3D',
+                              'ambisonic_channel_ordering': 'ACN',
+                              'channel_map': [0, 1, 2, 3]}
+            metadata.audio = audio_metadata
+
         console = Console()
         spherical.inject_metadata(
-            self.in_file, self.save_file, xml, console.append)
+            self.in_file, self.save_file, metadata, console.append)
         self.set_message("Successfully saved file to %s\n"
                          % ntpath.basename(self.save_file))
         self.button_open.configure(state="normal")
@@ -131,6 +164,9 @@ class Application(Frame):
     def action_set_spherical(self):
         self.update_state()
 
+    def action_set_spatial_audio(self):
+        self.update_state()
+
     def action_set_3d(self):
         self.update_state()
 
@@ -140,8 +176,10 @@ class Application(Frame):
 
     def disable_state(self):
         self.checkbox_spherical.configure(state="disabled")
+        self.checkbox_spatial_audio.configure(state="disabled")
         self.checkbox_3D.configure(state="disabled")
         self.options_projection.configure(state="disabled")
+        self.options_ambisonics.configure(state="disabled")
         self.button_inject.configure(state="disabled")
         self.button_open.configure(state="disabled")
         self.button_quit.configure(state="disabled")
@@ -152,10 +190,22 @@ class Application(Frame):
             self.checkbox_3D.configure(state="normal")
             self.options_projection.configure(state="normal")
             self.button_inject.configure(state="normal")
+            if self.enable_spatial_audio:
+                self.checkbox_spatial_audio.configure(state="normal")
+                if self.var_spatial_audio.get():
+                    self.options_ambisonics.configure(state="normal")
+                else:
+                    self.options_ambisonics.configure(state="disable")
         else:
             self.checkbox_3D.configure(state="disabled")
             self.options_projection.configure(state="disabled")
             self.button_inject.configure(state="disabled")
+            self.checkbox_spatial_audio.configure(state="disabled")
+            if self.var_spatial_audio.get():
+                self.options_ambisonics.configure(state="normal")
+            else:
+                self.options_ambisonics.configure(state="disable")
+            self.options_ambisonics.configure(state="disabled")
 
     def set_error(self, text):
         self.label_message["text"] = text
@@ -185,6 +235,21 @@ class Application(Frame):
         self.checkbox_spherical["command"] = self.action_set_spherical
         self.checkbox_spherical.grid(row=row, column=column, padx=14, pady=2)
 
+        # Spatial Audio Checkbox
+        row += 1
+        column = 0
+        self.label_spatial_audio = Label(self)
+        self.label_spatial_audio["text"] = "Spatial Audio"
+        self.label_spatial_audio.grid(row=row, column=column)
+
+        column += 1
+        self.var_spatial_audio = IntVar()
+        self.checkbox_spatial_audio = \
+            Checkbutton(self, variable=self.var_spatial_audio)
+        self.checkbox_spatial_audio["command"] = self.action_set_spatial_audio
+        self.checkbox_spatial_audio.grid(
+            row=row, column=column, padx=0, pady=0)
+
         # 3D
         column = 0
         row = row + 1
@@ -209,6 +274,18 @@ class Application(Frame):
         self.options_projection = Label(self)
         self.options_projection["text"] = "Equirectangular"
         self.options_projection.grid(row=row, column=column, padx=14, pady=2)
+
+        # Ambisonics Type
+        column = 0
+        row = row + 1
+        self.label_ambisonics = Label(self)
+        self.label_ambisonics["text"] = "Ambisonics Type"
+        self.label_ambisonics.grid(row=row, column=column, padx=14, pady=2)
+        column += 1
+
+        self.options_ambisonics = Label(self)
+        self.options_ambisonics["text"] = "1st Order, ACN, SN3D, Periphonic"
+        self.options_ambisonics.grid(row=row, column=column, padx=14, pady=2)
 
         # Message Box
         row = row + 1
@@ -261,7 +338,7 @@ class Application(Frame):
         master.attributes("-topmost", True)
         master.focus_force()
         self.after(50, lambda: master.attributes("-topmost", False))
-
+        self.enable_spatial_audio = False
 
 def main():
     root = Tk()

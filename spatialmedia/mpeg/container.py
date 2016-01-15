@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import struct
 
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
-
+from spatialmedia.mpeg import sa3d
 
 def load(fh, position, end):
     if position is None:
@@ -37,7 +37,10 @@ def load(fh, position, end):
     name = fh.read(4)
 
     if name not in constants.CONTAINERS_LIST:
-        return box.load(fh, position, end)
+        if name == constants.TAG_SA3D:
+            return sa3d.load(fh, position, end)
+        else:
+            return box.load(fh, position, end)
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
@@ -51,13 +54,30 @@ def load(fh, position, end):
         print "Error: Container box size exceeds bounds."
         return None
 
+    padding = 0
+    stsd_version = 0
+    if (name == constants.TAG_STSD):
+        padding = 8
+
+    if (name == constants.TAG_MP4A):
+        current_pos = fh.tell()
+        fh.seek(current_pos + 8)
+        sample_description_version = struct.unpack(">h", fh.read(2))[0]
+        fh.seek(current_pos)
+
+        if sample_description_version == 1:
+          padding = 28+16 # Mov
+        else:
+          padding = 28 # Mp4
+
     new_box = Container()
     new_box.name = name
     new_box.position = position
     new_box.header_size = header_size
     new_box.content_size = size - header_size
+    new_box.padding = padding
     new_box.contents = load_multiple(
-        fh, position + header_size, position + size)
+        fh, position + header_size + padding, position + size)
 
     if new_box.contents is None:
         return None
@@ -81,16 +101,17 @@ def load_multiple(fh, position=None, end=None):
 class Container(box.Box):
     """MPEG4 container box contents / behaviour."""
 
-    def __init__(self):
+    def __init__(self, padding=0):
         self.name = ""
         self.position = 0
         self.header_size = 0
         self.content_size = 0
         self.contents = list()
+        self.padding = padding
 
     def resize(self):
         """Recomputes the box size and recurses on contents."""
-        self.content_size = 0
+        self.content_size = self.padding
         for element in self.contents:
             if isinstance(element, Container):
                 element.resize()
@@ -175,6 +196,10 @@ class Container(box.Box):
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
             out_fh.write(self.name)
+
+        if self.padding > 0:
+            in_fh.seek(self.content_start())
+            box.tag_copy(in_fh, out_fh, self.padding)
 
         for element in self.contents:
             element.save(in_fh, out_fh, delta)

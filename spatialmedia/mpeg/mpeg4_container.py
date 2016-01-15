@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -94,6 +94,7 @@ class Mpeg4Container(container.Container):
         self.first_mdat_box = None
         self.ftyp_box = None
         self.first_mdat_position = None
+        self.padding = 0
 
     def merge(self, element):
         """Mpeg4 containers do not support merging."""
