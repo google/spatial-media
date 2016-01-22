@@ -17,7 +17,7 @@
 
 """MPEG4 processing classes.
 
-Tool for loading mpeg4 files and manipulating boxes.
+Functions for loading MP4/MOV files and manipulating boxes.
 """
 
 from spatialmedia.mpeg import box

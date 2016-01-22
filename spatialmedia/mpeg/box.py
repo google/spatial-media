@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright 2015 Google Inc. All rights reserved.
+# Copyright 2016 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,10 @@
 Tool for loading mpeg4 files and manipulating atoms.
 """
 
-from spatialmedia.mpeg import constants
-
 import StringIO
 import struct
 
+from spatialmedia.mpeg import constants
 
 def load(fh, position, end):
     """Loads the box located at a position in a mp4 file.

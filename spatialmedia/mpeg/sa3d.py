@@ -21,10 +21,10 @@ Enables the injection of an SA3D MPEG-4. The SA3D box specification
 conforms to that outlined in docs/spatial-audio-rfc.md
 """
 
+import struct
+
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
-
-import struct
 
 
 def load(fh, position=None, end=None):
@@ -69,8 +69,8 @@ def load(fh, position=None, end=None):
 
 class SA3DBox(box.Box):
     ambisonic_types = {'periphonic': 0}
-    ambisonic_ordering = {'ACN': 0}
-    ambisonic_normalization = {'SN3D': 0}
+    ambisonic_orderings = {'ACN': 0}
+    ambisonic_normalizations = {'SN3D': 0}
 
     def __init__(self):
         box.Box.__init__(self)
@@ -96,10 +96,10 @@ class SA3DBox(box.Box):
         new_box.content_size += 1               # uint8
         new_box.ambisonic_order = audio_metadata["ambisonic_order"]
         new_box.content_size += 4               # uint32
-        new_box.ambisonic_channel_ordering = SA3DBox.ambisonic_ordering[
+        new_box.ambisonic_channel_ordering = SA3DBox.ambisonic_orderings[
             audio_metadata["ambisonic_channel_ordering"]]
         new_box.content_size += 1               # uint8
-        new_box.ambisonic_normalization = SA3DBox.ambisonic_normalization[
+        new_box.ambisonic_normalization = SA3DBox.ambisonic_normalizations[
             audio_metadata["ambisonic_normalization"]]
         new_box.content_size += 1               # uint8
         new_box.num_channels = num_channels
@@ -116,11 +116,11 @@ class SA3DBox(box.Box):
                  if value==self.ambisonic_type).next()
 
     def ambisonic_channel_ordering_name(self):
-        return (key for key,value in SA3DBox.ambisonic_ordering.items()
+        return (key for key,value in SA3DBox.ambisonic_orderings.items()
                 if value==self.ambisonic_channel_ordering).next()
 
     def ambisonic_normalization_name(self):
-        return (key for key,value in SA3DBox.ambisonic_normalization.items()
+        return (key for key,value in SA3DBox.ambisonic_normalizations.items()
                 if value==self.ambisonic_normalization).next()
 
     def print_box(self, console):
@@ -132,10 +132,10 @@ class SA3DBox(box.Box):
         ambisonic_normalization = self.ambisonic_normalization_name()
         console("\t\tAmbisonic Type: %s" % ambisonic_type)
         console("\t\tAmbisonic Order: %d" % self.ambisonic_order)
-        console("\t\tChannel Ordering: %s" % channel_ordering)
-        console("\t\tNormalization Type: %s" % ambisonic_normalization)
+        console("\t\tAmbisonic Channel Ordering: %s" % channel_ordering)
+        console("\t\tAmbisonic Normalization: %s" % ambisonic_normalization)
         console("\t\tNumber of Channels: %d" % self.num_channels)
-        console("\t\tChannel Mapping: %s" % str(self.channel_map))
+        console("\t\tChannel Map: %s" % str(self.channel_map))
 
     def get_metadata_string(self):
         """ Outputs a concise single line audio metadata string. """

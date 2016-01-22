@@ -15,10 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""MPEG processing classes.
-
-Tool for loading mpeg4 files and manipulating atoms.
-"""
+"""MPEG-4 constants."""
 
 TRAK_TYPE_VIDE = "vide"
 
