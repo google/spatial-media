@@ -1,31 +1,54 @@
-# <a href="https://github.com/google/spatial-media/archive/master.zip" download>master.zip</a>
-This is a simple python command line tool for manipulating spherical/360 metadata in MP4 files. This can be used to either validate the 360 metadata in a tagged spherical video or insert the metadata into an existing file.
+# Spatial Media Metadata Injector
 
-## Building Standalone Application
-Install pyinstaller
-
-    pip install pyinstaller
-
-Run pyinstaller on the gui.py file
-
-    pyinstall --clean --windowed --name "Spherical Metadata Injector" gui.py
-
-If on Mac OS X modify Spherical\ Metadata\ Injector.app/Contents/info.plist and
-add "High Resolution Capable" key with value "YES".
-
-## Install command line application
-Download the script <a href="https://github.com/google/spatial-media/archive/master.zip" download>master.zip</a> and install <a href="https://www.python.org/download/releases/2.7.7/">Python 2.7</a>.
-
+A tool for manipulating spatial media ([spherical video]
+(../docs/spherical-video-rfc.md) and [spatial audio]
+(../docs/spatial-audio-rfc.md)) metadata in MP4 and MOV files. It can be used to
+inject spatial media metadata into a file or validate metadata in an existing
+file.
 
 ## Usage
+
+[Python 2.7](https://www.python.org/downloads/) must be used to run the tool.
+From within the directory above `spatialmedia`:
+
+#### Help
+
     python spatialmedia -h
-Prints help.
 
+Prints help and usage information.
 
-     <input> [additional input]
-For each file specified, prints any spherical metadata contained within.
+#### Examine
 
+    python spatialmedia <files...>
 
-    python spatialmedia -i [--stereo=(top-bottom|left-right)] <input> <output>
-Reads &lt;input&gt; and adds spherical / 360 metadata saving the altered copy to &lt;output&gt;. Input and output cannot be the same file. Options top-bottom and left-right flags set the appropriate values for the StereoMode tag.
+For each file specified, prints spatial media metadata contained in the file.
 
+#### Inject
+
+    python spatialmedia -i [--stereo=(none|top-bottom|left-right)] [--spatial-audio] <input> <output>
+
+Saves a version of `<input>` injected with spatial media metadata to `<output>`.
+`<input>` and `<output>` must not be the same file.
+
+##### --stereo
+
+Selects the left/right eye frame layout; see the `StereoMode` element in the
+[Spherical Video RFC](../docs/spherical-video-rfc.md) for more information.
+
+Options: - `none`: Mono frame layout. - `top-bottom`: Top half contains the left
+eye and bottom half contains the right eye. - `left-right`: Left half contains
+the left eye and right half contains the right eye.
+
+##### --spatial-audio
+
+Enables injection of spatial audio metadata. If enabled, the file must contain a
+4-channel first-order ambisonics audio track with ACN channel ordering and SN3D
+normalization; see the [Spatial Audio RFC](../docs/spatial-audio-rfc.md) for
+more information.
+
+## Building standalone GUI application
+
+Install [PyInstaller](http://pythonhosted.org/PyInstaller/), then run the
+following:
+
+    pyinstaller spatial_media_metadata_injector.spec

@@ -15,20 +15,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Spherical Metadata Python Tool
+"""Utilities for examining/injecting spatial media metadata in MP4/MOV files."""
 
-Tool for examining and injecting spherical metadata into MP4 files.
-"""
-
-from spatialmedia import mpeg
-
-from optparse import OptionParser
 import os
 import re
 import StringIO
 import struct
 import xml.etree
 import xml.etree.ElementTree
+
+from spatialmedia import mpeg
 
 MPEG_FILE_EXTENSIONS = [".mp4", ".mov"]
 
@@ -88,6 +84,14 @@ SPHERICAL_TAGS_LIST = [
     "CroppedAreaLeftPixels",
     "CroppedAreaTopPixels",
 ]
+
+SPATIAL_AUDIO_DEFAULT_METADATA = {
+    "ambisonic_order": 1,
+    "ambisonic_type": "periphonic",
+    "ambisonic_channel_ordering": "ACN",
+    "ambisonic_normalization": "SN3D",
+    "channel_map": [0, 1, 2, 3],
+}
 
 class Metadata(object):
     def __init__(self):
@@ -259,7 +263,7 @@ def parse_spherical_xml(contents, console):
     sphericalDictionary = dict()
     for child in parsed_xml.getchildren():
         if child.tag in SPHERICAL_TAGS.keys():
-            console("\t\tFound: " + SPHERICAL_TAGS[child.tag]
+            console("\t\t" + SPHERICAL_TAGS[child.tag]
                     + " = " + child.text)
             sphericalDictionary[SPHERICAL_TAGS[child.tag]] = child.text
         else:
@@ -330,7 +334,7 @@ def parse_mpeg4(input_file, console):
             console("Error, file could not be opened.")
             return
 
-        console("Loaded file settings")
+        console("Loaded file...")
         return parse_spherical_mpeg4(mpeg4_file, in_fh, console)
 
     console("Error \"" + input_file + "\" does not exist or do not have "
@@ -549,7 +553,7 @@ def get_num_audio_channels(mp4a_atom, in_fh):
         if (sampling_frequency_index == 0):
             # TODO: If the sample rate is 96kHz an additional 24 bit offset
             # value here specifies the actual sample rate.
-            print "Error: Graeter than 48khz audio is currently not supported."
+            print "Error: Greater than 48khz audio is currently not supported."
             return -1
         channel_configuration = (int("0078", 16) & decoder_descriptor) >> 3
     in_fh.seek(p)

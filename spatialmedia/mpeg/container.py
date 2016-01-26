@@ -17,7 +17,7 @@
 
 """MPEG processing classes.
 
-Tool for loading mpeg4 files and manipulating atoms.
+Functions for loading MPEG files and manipulating boxes.
 """
 
 import StringIO

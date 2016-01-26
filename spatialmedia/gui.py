@@ -15,19 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Spherical Metadata Python Tool
+"""Spatial Media Metadata Injector GUI 
 
-Tool for examining and injecting spherical metadata into MP4 files.
+GUI application for examining/injecting spatial media metadata in MP4/MOV files.
 """
 
 import ntpath
 import os
 import sys
-path = os.path.dirname(sys.modules[__name__].__file__)
-path = os.path.join(path, '..')
-sys.path.insert(0, path)
-
-from spatialmedia import spherical
 import tkFileDialog
 
 try:
@@ -38,6 +33,11 @@ except ImportError:
     except ImportError:
         print("Tkinter library is not available.")
         exit(0)
+
+path = os.path.dirname(sys.modules[__name__].__file__)
+path = os.path.join(path, '..')
+sys.path.insert(0, path)
+from spatialmedia import metadata_utils 
 
 
 class Console(object):
@@ -60,13 +60,14 @@ class Application(Frame):
         self.set_message("Opened file: %s\n" % ntpath.basename(self.in_file))
 
         console = Console()
-        parsedMetadata = spherical.parse_metadata(self.in_file, console.append)
+        parsed_metadata = metadata_utils.parse_metadata(self.in_file,
+                                                        console.append)
 
         metadata = None
         audio_metadata = None
-        if parsedMetadata:
-            metadata = parsedMetadata.video
-            audio_metadata = parsedMetadata.audio
+        if parsed_metadata:
+            metadata = parsed_metadata.video
+            audio_metadata = parsed_metadata.audio
 
         for line in console.log:
             if "Error" in line:
@@ -121,22 +122,14 @@ class Application(Frame):
         if (self.var_3d.get()):
             stereo = "top-bottom"
 
-        xml = spherical.generate_spherical_xml(stereo=stereo)
-
-        metadata = spherical.Metadata()
-        metadata.video = xml
+        metadata = metadata_utils.Metadata()
+        metadata.video = metadata_utils.generate_spherical_xml(stereo=stereo)
 
         if self.var_spatial_audio.get():
-            # Default ambisonics audio metadata
-            audio_metadata = {'ambisonic_order': 1,
-                              'ambisonic_type': 'periphonic',
-                              'ambisonic_normalization': 'SN3D',
-                              'ambisonic_channel_ordering': 'ACN',
-                              'channel_map': [0, 1, 2, 3]}
-            metadata.audio = audio_metadata
+            metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA 
 
         console = Console()
-        spherical.inject_metadata(
+        metadata_utils.inject_metadata(
             self.in_file, self.save_file, metadata, console.append)
         self.set_message("Successfully saved file to %s\n"
                          % ntpath.basename(self.save_file))
@@ -221,8 +214,6 @@ class Application(Frame):
         row = 0
         column = 0
 
-        titleFont = ('time', 12, 'bold')
-
         # Spherical Checkbox
         self.label_spherical = Label(self)
         self.label_spherical["text"] = "Spherical"
@@ -284,7 +275,7 @@ class Application(Frame):
         column += 1
 
         self.options_ambisonics = Label(self)
-        self.options_ambisonics["text"] = "1st Order, ACN, SN3D, Periphonic"
+        self.options_ambisonics["text"] = "1st-Order Periphonic, ACN, SN3D"
         self.options_ambisonics.grid(row=row, column=column, padx=14, pady=2)
 
         # Message Box
@@ -320,9 +311,9 @@ class Application(Frame):
         self.button_quit.grid(row=0, column=2, padx=14, pady=2)
 
     def __init__(self, master=None):
-        master.wm_title("Spherical Metadata Injector")
+        master.wm_title("Spatial Media Metadata Injector")
         master.config(menu=Menu(master))
-        self.title = "Spherical Metadata Tool"
+        self.title = "Spatial Media Metadata Injector"
         self.open_options = {}
         self.open_options["filetypes"] = [("Videos", ("*.mov", "*.mp4"))]
 
