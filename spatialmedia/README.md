@@ -35,9 +35,15 @@ Saves a version of `<input>` injected with spatial media metadata to `<output>`.
 Selects the left/right eye frame layout; see the `StereoMode` element in the
 [Spherical Video RFC](../docs/spherical-video-rfc.md) for more information.
 
-Options: - `none`: Mono frame layout. - `top-bottom`: Top half contains the left
-eye and bottom half contains the right eye. - `left-right`: Left half contains
-the left eye and right half contains the right eye.
+Options:
+
+- `none`: Mono frame layout.
+
+- `top-bottom`: Top half contains the left eye and bottom half contains the
+right eye.
+
+- `left-right`: Left half contains the left eye and right half contains the
+right eye.
 
 ##### --spatial-audio
 
