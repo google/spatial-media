@@ -102,6 +102,7 @@ class ParsedMetadata(object):
     def __init__(self):
         self.video = dict()
         self.audio = None
+        self.num_audio_channels = 0
 
 SPHERICAL_PREFIX = "{http://ns.google.com/videos/1.0/spherical/}"
 SPHERICAL_TAGS = dict()
@@ -211,19 +212,20 @@ def inject_spatial_audio_atom(
                 if sub_element.name != mpeg.constants.TAG_STSD:
                     continue
                 for sample_description in sub_element.contents:
-                    if sample_description.name == mpeg.constants.TAG_MP4A:
+                    if sample_description.name in\
+                            mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
                         in_fh.seek(sample_description.position +
                                    sample_description.header_size + 16)
                         num_channels = get_num_audio_channels(
-                            sample_description, in_fh)
+                            sub_element, in_fh)
                         num_ambisonic_components = \
                             get_expected_num_audio_components(
                                 audio_metadata["ambisonic_type"],
                                 audio_metadata["ambisonic_order"])
                         if num_channels != num_ambisonic_components:
-                            err_msg =  "Error: Found %d audio channel(s). "\
+                            err_msg = "Error: Found %d audio channel(s). "\
                                   "Expected %d channel(s) for %s ambisonics "\
-                                  "of orded %d."\
+                                  "of order %d."\
                                 % (num_channels,
                                    num_ambisonic_components,
                                    audio_metadata["ambisonic_type"],
@@ -318,10 +320,13 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                         for stsd_elem in stbl_elem.contents:
                             if stsd_elem.name != mpeg.constants.TAG_STSD:
                                 continue
-                            for mp4a_elem in stsd_elem.contents:
-                                if mp4a_elem.name != mpeg.constants.TAG_MP4A:
+                            metadata.num_audio_channels = get_num_audio_channels(
+                                    stsd_elem, fh)
+                            for sa3d_container_elem in stsd_elem.contents:
+                                if sa3d_container_elem.name not in\
+                                        mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
                                     continue
-                                for sa3d_elem in mp4a_elem.contents:
+                                for sa3d_elem in sa3d_container_elem.contents:
                                     if sa3d_elem.name == mpeg.constants.TAG_SA3D:
                                         sa3d_elem.print_box(console)
                                         metadata.audio = sa3d_elem
@@ -406,9 +411,6 @@ def inject_metadata(src, dest, metadata, console):
     extension = os.path.splitext(infile)[1].lower()
 
     if (extension in MPEG_FILE_EXTENSIONS):
-        if (metadata.audio and extension != ".mp4"):
-            error("Error: Spatial audio current not supported for %s ." %
-                  extension)
         inject_mpeg4(infile, outfile, metadata, console)
         return
 
@@ -510,8 +512,53 @@ def get_expected_num_audio_components(ambisonics_type, ambisonics_order):
     else:
         return -1
 
+def get_num_audio_channels(stsd, in_fh):
+    if stsd.name != mpeg.constants.TAG_STSD:
+        print "get_num_audio_channels should be given a STSD box"
+        return -1
+    for sample_description in stsd.contents:
+        if sample_description.name == mpeg.constants.TAG_MP4A:
+            return get_aac_num_channels(sample_description, in_fh)
+        elif sample_description.name in mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
+            return get_sample_description_num_channels(sample_description, in_fh)
+    return -1
 
-def get_num_audio_channels(mp4a_atom, in_fh):
+def get_sample_description_num_channels(sample_description, in_fh):
+    """Reads the number of audio channels from a sound sample description.
+    """
+    p = in_fh.tell()
+    in_fh.seek(sample_description.content_start() + 8)
+
+    version = struct.unpack(">h", in_fh.read(2))[0]
+    revision_level = struct.unpack(">h", in_fh.read(2))[0]
+    vendor = struct.unpack(">i", in_fh.read(4))[0]
+    if version == 0:
+        num_audio_channels = struct.unpack(">h", in_fh.read(2))[0]
+        sample_size_bytes = struct.unpack(">h", in_fh.read(2))[0]
+    elif version == 1:
+        num_audio_channels = struct.unpack(">h", in_fh.read(2))[0]
+        sample_size_bytes = struct.unpack(">h", in_fh.read(2))[0]
+        samples_per_packet = struct.unpack(">i", in_fh.read(4))[0]
+        bytes_per_packet = struct.unpack(">i", in_fh.read(4))[0]
+        bytes_per_frame = struct.unpack(">i", in_fh.read(4))[0]
+        bytes_per_sample = struct.unpack(">i", in_fh.read(4))[0]
+    elif version == 2:
+        always_3 = struct.unpack(">h", in_fh.read(2))[0]
+        always_16 = struct.unpack(">h", in_fh.read(2))[0]
+        always_minus_2 = struct.unpack(">h", in_fh.read(2))[0]
+        always_0 = struct.unpack(">h", in_fh.read(2))[0]
+        always_65536 = struct.unpack(">i", in_fh.read(4))[0]
+        size_of_struct_only = struct.unpack(">i", in_fh.read(4))[0]
+        audio_sample_rate = struct.unpack(">d", in_fh.read(8))[0]
+        num_audio_channels = struct.unpack(">i", in_fh.read(4))[0]
+    else:
+        print "Unsupported version for " + sample_description.name + " box"
+        return -1
+
+    in_fh.seek(p)
+    return num_audio_channels
+
+def get_aac_num_channels(mp4a_atom, in_fh):
     """Reads the number of audio channels from AAC's AudioSpecificConfig
        descriptor within the esds child atom of the input mp4a atom.
     """

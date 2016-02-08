@@ -29,6 +29,7 @@ TAG_HDLR = "hdlr"
 TAG_FTYP = "ftyp"
 TAG_ESDS = "esds"
 TAG_SOUN = "soun"
+TAG_SA3D = "SA3D"
 
 # Container types.
 TAG_MOOV = "moov"
@@ -36,20 +37,47 @@ TAG_UDTA = "udta"
 TAG_META = "meta"
 TAG_TRAK = "trak"
 TAG_MDIA = "mdia"
-TAG_MP4A = "mp4a"
 TAG_MINF = "minf"
 TAG_STBL = "stbl"
 TAG_STSD = "stsd"
 TAG_UUID = "uuid"
-TAG_SA3D = "SA3D"
 
-CONTAINERS_LIST = [
+# Sound sample descriptions.
+TAG_NONE = "NONE"
+TAG_RAW_ = "raw "
+TAG_TWOS = "twos"
+TAG_SOWT = "sowt"
+TAG_FL32 = "fl32"
+TAG_FL64 = "fl64"
+TAG_IN24 = "in24"
+TAG_IN32 = "in32"
+TAG_ULAW = "ulaw"
+TAG_ALAW = "alaw"
+TAG_LPCM = "lpcm"
+TAG_MP4A = "mp4a"
+
+SOUND_SAMPLE_DESCRIPTIONS = frozenset([
+    TAG_NONE,
+    TAG_RAW_,
+    TAG_TWOS,
+    TAG_SOWT,
+    TAG_FL32,
+    TAG_FL64,
+    TAG_IN24,
+    TAG_IN32,
+    TAG_ULAW,
+    TAG_ALAW,
+    TAG_LPCM,
+    TAG_MP4A,
+    ])
+
+CONTAINERS_LIST = frozenset([
     TAG_MDIA,
     TAG_MINF,
-    TAG_MP4A,
     TAG_MOOV,
     TAG_STBL,
     TAG_STSD,
     TAG_TRAK,
     TAG_UDTA,
-    ]
+    ]).union(SOUND_SAMPLE_DESCRIPTIONS)
+

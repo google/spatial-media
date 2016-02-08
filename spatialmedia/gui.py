@@ -85,8 +85,7 @@ class Application(Frame):
 
         infile = os.path.abspath(self.in_file)
         file_extension = os.path.splitext(infile)[1].lower()
-        self.enable_spatial_audio =\
-            True if (file_extension == ".mp4") else False
+        self.enable_spatial_audio = parsed_metadata.num_audio_channels == 4
 
         if not metadata:
             self.var_spherical.set(0)
@@ -226,21 +225,6 @@ class Application(Frame):
         self.checkbox_spherical["command"] = self.action_set_spherical
         self.checkbox_spherical.grid(row=row, column=column, padx=14, pady=2)
 
-        # Spatial Audio Checkbox
-        row += 1
-        column = 0
-        self.label_spatial_audio = Label(self)
-        self.label_spatial_audio["text"] = "Spatial Audio"
-        self.label_spatial_audio.grid(row=row, column=column)
-
-        column += 1
-        self.var_spatial_audio = IntVar()
-        self.checkbox_spatial_audio = \
-            Checkbutton(self, variable=self.var_spatial_audio)
-        self.checkbox_spatial_audio["command"] = self.action_set_spatial_audio
-        self.checkbox_spatial_audio.grid(
-            row=row, column=column, padx=0, pady=0)
-
         # 3D
         column = 0
         row = row + 1
@@ -265,6 +249,26 @@ class Application(Frame):
         self.options_projection = Label(self)
         self.options_projection["text"] = "Equirectangular"
         self.options_projection.grid(row=row, column=column, padx=14, pady=2)
+
+        # Spherical / Spatial Audio Separator
+        row += 1
+        separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
+        separator.grid(columnspan=row, padx=14, pady=4, sticky=N+E+S+W)
+
+        # Spatial Audio Checkbox
+        row += 1
+        column = 0
+        self.label_spatial_audio = Label(self)
+        self.label_spatial_audio["text"] = "Spatial Audio"
+        self.label_spatial_audio.grid(row=row, column=column)
+
+        column += 1
+        self.var_spatial_audio = IntVar()
+        self.checkbox_spatial_audio = \
+            Checkbutton(self, variable=self.var_spatial_audio)
+        self.checkbox_spatial_audio["command"] = self.action_set_spatial_audio
+        self.checkbox_spatial_audio.grid(
+            row=row, column=column, padx=0, pady=0)
 
         # Ambisonics Type
         column = 0
