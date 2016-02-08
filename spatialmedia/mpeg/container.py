@@ -55,20 +55,24 @@ def load(fh, position, end):
         return None
 
     padding = 0
-    stsd_version = 0
-    if (name == constants.TAG_STSD):
+    if name == constants.TAG_STSD:
         padding = 8
 
-    if (name == constants.TAG_MP4A):
+    if name in constants.SOUND_SAMPLE_DESCRIPTIONS:
         current_pos = fh.tell()
         fh.seek(current_pos + 8)
         sample_description_version = struct.unpack(">h", fh.read(2))[0]
         fh.seek(current_pos)
 
-        if sample_description_version == 1:
-          padding = 28+16 # Mov
+        if sample_description_version == 0:
+            padding = 28
+        elif sample_description_version == 1:
+            padding = 28 + 16
+        elif sample_description_version == 2:
+            padding = 56
         else:
-          padding = 28 # Mp4
+            print("Unsupported sample description version:",
+                  sample_description_version)
 
     new_box = Container()
     new_box.name = name
