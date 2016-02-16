@@ -194,7 +194,7 @@ def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
 
 def mpeg4_add_audio_metadata(mpeg4_file, in_fh, audio_metadata, console):
     num_audio_tracks = get_num_audio_tracks(mpeg4_file, in_fh)
-    if (num_audio_tracks > 1):
+    if num_audio_tracks > 1:
         console("Error: Expected 1 audio track. Found %d" % num_audio_tracks)
         return False
 
@@ -320,12 +320,12 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                         for stsd_elem in stbl_elem.contents:
                             if stsd_elem.name != mpeg.constants.TAG_STSD:
                                 continue
-                            metadata.num_audio_channels = get_num_audio_channels(
-                                    stsd_elem, fh)
                             for sa3d_container_elem in stsd_elem.contents:
-                                if sa3d_container_elem.name not in\
+                                if sa3d_container_elem.name not in \
                                         mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
                                     continue
+                                metadata.num_audio_channels = \
+                                    get_num_audio_channels(stsd_elem, fh)
                                 for sa3d_elem in sa3d_container_elem.contents:
                                     if sa3d_elem.name == mpeg.constants.TAG_SA3D:
                                         sa3d_elem.print_box(console)
