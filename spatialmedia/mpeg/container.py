@@ -36,18 +36,21 @@ def load(fh, position, end):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
 
-    if name not in constants.CONTAINERS_LIST:
+    is_box = name not in constants.CONTAINERS_LIST
+    # Handle the mp4a decompressor setting (wave -> mp4a).
+    if name == constants.TAG_MP4A and size == 12:
+        is_box = True 
+    if is_box:
         if name == constants.TAG_SA3D:
             return sa3d.load(fh, position, end)
-        else:
-            return box.load(fh, position, end)
+        return box.load(fh, position, end)
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
         header_size = 16
 
     if size < 8:
-        print "Error, invalid size in ", name, " at ", position
+        print "Error, invalid size", size, "in", name, "at", position
         return None
 
     if (position + size) > end:
@@ -57,7 +60,6 @@ def load(fh, position, end):
     padding = 0
     if name == constants.TAG_STSD:
         padding = 8
-
     if name in constants.SOUND_SAMPLE_DESCRIPTIONS:
         current_pos = fh.tell()
         fh.seek(current_pos + 8)
@@ -69,7 +71,7 @@ def load(fh, position, end):
         elif sample_description_version == 1:
             padding = 28 + 16
         elif sample_description_version == 2:
-            padding = 56
+            padding = 64
         else:
             print("Unsupported sample description version:",
                   sample_description_version)
