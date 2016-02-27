@@ -558,22 +558,28 @@ def get_sample_description_num_channels(sample_description, in_fh):
     in_fh.seek(p)
     return num_audio_channels
 
-def get_aac_num_channels(mp4a_atom, in_fh):
+def get_aac_num_channels(box, in_fh):
     """Reads the number of audio channels from AAC's AudioSpecificConfig
-       descriptor within the esds child atom of the input mp4a atom.
+       descriptor within the esds child box of the input mp4a or wave box.
     """
     p = in_fh.tell()
-    if mp4a_atom.name != mpeg.constants.TAG_MP4A:
+    if box.name not in [mpeg.constants.TAG_MP4A, mpeg.constants.TAG_WAVE]:
         return -1
 
-    for element in mp4a_atom.contents:
-        if (element.name != mpeg.constants.TAG_ESDS):
+    for element in box.contents:
+        if element.name == mpeg.constants.TAG_WAVE:
+            # Handle .mov with AAC audio, where the structure is:
+            #     stsd -> mp4a -> wave -> esds
+            channel_configuration = get_aac_num_channels(element, in_fh)
+            break
+
+        if element.name != mpeg.constants.TAG_ESDS:
           continue
         in_fh.seek(element.content_start() + 4)
         descriptor_tag = struct.unpack(">c", in_fh.read(1))[0]
 
         # Verify the read descriptor is an elementary stream descriptor
-        if (ord(descriptor_tag) != 3):  # Not an MP4 elementary stream.
+        if ord(descriptor_tag) != 3:  # Not an MP4 elementary stream.
             print "Error: failed to read elementary stream descriptor."
             return -1
         get_descriptor_length(in_fh)
@@ -581,7 +587,7 @@ def get_aac_num_channels(mp4a_atom, in_fh):
         config_descriptor_tag = struct.unpack(">c", in_fh.read(1))[0]
 
         # Verify the read descriptor is a decoder config. descriptor.
-        if (ord(config_descriptor_tag) != 4):
+        if ord(config_descriptor_tag) != 4:
             print "Error: failed to read decoder config. descriptor."
             return -1
         get_descriptor_length(in_fh)
@@ -589,15 +595,15 @@ def get_aac_num_channels(mp4a_atom, in_fh):
         decoder_specific_descriptor_tag = struct.unpack(">c", in_fh.read(1))[0]
 
         # Verify the read descriptor is a decoder specific info descriptor
-        if (ord(decoder_specific_descriptor_tag) != 5):
+        if ord(decoder_specific_descriptor_tag) != 5:
             print "Error: failed to read MP4 audio decoder specific config."
             return -1
         audio_specific_descriptor_size = get_descriptor_length(in_fh)
-        assert(audio_specific_descriptor_size >= 2)
+        assert audio_specific_descriptor_size >= 2
         decoder_descriptor = struct.unpack(">h", in_fh.read(2))[0]
         object_type = (int("F800", 16) & decoder_descriptor) >> 11
         sampling_frequency_index = (int("0780", 16) & decoder_descriptor) >> 7
-        if (sampling_frequency_index == 0):
+        if sampling_frequency_index == 0:
             # TODO: If the sample rate is 96kHz an additional 24 bit offset
             # value here specifies the actual sample rate.
             print "Error: Greater than 48khz audio is currently not supported."

@@ -41,6 +41,7 @@ TAG_MINF = "minf"
 TAG_STBL = "stbl"
 TAG_STSD = "stsd"
 TAG_UUID = "uuid"
+TAG_WAVE = "wave"
 
 # Sound sample descriptions.
 TAG_NONE = "NONE"
@@ -79,5 +80,6 @@ CONTAINERS_LIST = frozenset([
     TAG_STSD,
     TAG_TRAK,
     TAG_UDTA,
+    TAG_WAVE,
     ]).union(SOUND_SAMPLE_DESCRIPTIONS)
 
