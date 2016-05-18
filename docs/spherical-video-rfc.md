@@ -1,7 +1,8 @@
-# Spherical Video RFC (draft)
-*This document describes an open metadata scheme by which Matroska-like and MP4 multimedia containers may accommodate spherical video. Comments are welcome on the [webm-discuss](https://groups.google.com/a/webmproject.org/forum/#!forum/webm-discuss) mailing list or [file an issue](https://github.com/google/spatial-media/issues) on GitHub.* 
+# Spherical Video RFC
+**Note: This metadata scheme is superseded by the [Spherical Video V2](spherical-video-v2-rfc.md) metadata specification.**
 
-*Last modified: 2015-02-06*
+*This document describes an open metadata scheme by which Matroska-like and MP4 multimedia containers may accommodate spherical video. Comments are welcome on the [spatial-media-discuss](https://groups.google.com/forum/#!forum/spatial-media-discuss) mailing list or by [filing an issue](https://github.com/google/spatial-media/issues) on GitHub.* 
+
 
 ------------------------------------------------------
 
