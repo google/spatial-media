@@ -1,12 +1,12 @@
 # Spatial Audio RFC (draft)
-*This document describes an open metadata scheme by which MP4 multimedia containers may accommodate spatial audio. Comments are welcome by filing an issue on GitHub.*
+*This document describes an open metadata scheme by which MP4 multimedia containers may accommodate spatial and non-diegetic audio. Comments are welcome on the [spatial-media-discuss](https://groups.google.com/forum/#!forum/spatial-media-discuss) mailing list or by [filing an issue](https://github.com/google/spatial-media/issues) on GitHub.*
 
 ------------------------------------------------------
 
 ## Metadata Format
 
 ### MP4
-Spatial audio metadata is stored in a new box, `SA3D`, defined in this RFC, in an MP4 container. The metadata is applicable to individual tracks in the container.
+Spatial audio metadata is stored in a new box, `SA3D`, defined in this RFC. Non-diegetic audio metadata is stored in a new box, `SAND`, defined in this RFC. The metadata is applicable to individual tracks in an MP4 container.
 
 #### Spatial Audio Box (SA3D)
 ##### Definition
@@ -65,7 +65,7 @@ aligned(8) class SpatialAudioBox extends Box(‘SA3D’) {
 
 ##### Example
 
-Here is an example MP4 box hierarchy for a file containing the SA3D box:
+Here is an example MP4 box hierarchy for a file containing the `SA3D` box:
 
 - moov
   - trak
@@ -77,7 +77,7 @@ Here is an example MP4 box hierarchy for a file containing the SA3D box:
               - esds
               - SA3D
 
-where the SA3D box has the following data:
+where the `SA3D` box has the following data:
 
 | Field Name | Value |
 |:-----------|:-----|
@@ -94,6 +94,55 @@ where the SA3D box has the following data:
 
 ------------------------------------------------------
 
+#### Non-Diegetic Audio Box (SAND)
+##### Definition
+Box Type: `SAND`  
+Container: Sound Sample Description box (e.g., `mp4a`, `lpcm`, `sowt`, etc.)  
+Mandatory: No  
+Quantity: Zero or one  
+
+When present, provides additional information about the non-diegetic audio content contained in this audio track. This can be used alongisde `SA3D` in a head-tracked virtual reality experience to provide audio which should remain unchanged by listener head rotation; e.g., narration or stereo music.
+
+##### Syntax
+```
+aligned(8) class NonDiegeticAudioBox extends Box(‘SAND’) {
+    unsigned int(8)  version;
+}
+```
+
+##### Semantics
+- `version` is an 8-bit unsigned integer that specifies the version of this box. Must be set to `0`.
+
+##### Example
+
+Here is an example MP4 box hierarchy for a file containing the `SA3D` and `SAND` boxes, to mix spatial audio with non-diegetic audio:
+
+- moov
+  - trak
+    - mdia
+      - minf
+        - stbl
+          - stsd
+            - mp4a
+              - esds
+              - SA3D
+  - trak
+    - mdia
+      - minf
+        - stbl
+          - stsd
+            - mp4a
+              - esds
+              - SAND 
+
+where the `SAND` box has the following data:
+
+| Field Name | Value |
+|:-----------|:-----|
+| `version` | `0` |
+
+------------------------------------------------------
+
 ## Appendix 1 - Ambisonics
 The traditional notion of ambisonics is used, where the sound field is represented by spherical harmonics coefficients using the *associated Legendre polynomials* (without *Condon-Shortley phase*) as the basis functions. Thus, the spherical harmonic of degree `l` and order `m` at elevation `E` and azimuth `A` is given by:
 
@@ -103,3 +152,16 @@ where:
 - `N(l, m)` is the spherical harmonics normalization function used.
 - `P(l, m, x)` is the (unnormalized) *associated Legendre polynomial*, without *Condon-Shortley phase*, of degree `l` and order `m` evaluated at `x`.
 - `T(m, x)` is `sin(-m * x)` for `m < 0` and `cos(m * x)` otherwise.
+
+### Conventions
+#### Azimuth
+- `A = 0`: The source is in front of the listener.
+- `A` in `(0, pi/2)`: The source is in the forward-left quadrant.
+- `A` in `(pi/2, pi)`: The source is in the back-left quadrant.
+- `A` in `(-pi/2, 0)`: The source is in the forward-right quadrant.
+- `A` in `(-pi, -pi/2)`: The source is in the back-right quadrant.
+
+#### Elevation
+- `E = 0`: The source is in the horizontal plane.
+- `E` in `(0, pi/2]`: The source is above the listener.
+- `E` in `[-pi/2, 0)`: The source is below the listener.
