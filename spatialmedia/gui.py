@@ -57,7 +57,7 @@ class Application(Frame):
             return
         self.in_file = tmp_in_file
 
-        self.set_message("Opened file: %s\n" % ntpath.basename(self.in_file))
+        self.set_message("Current 360 video: %s" % ntpath.basename(self.in_file))
 
         console = Console()
         parsed_metadata = metadata_utils.parse_metadata(self.in_file,
@@ -77,11 +77,9 @@ class Application(Frame):
                 self.var_spatial_audio.set(0)
                 self.disable_state()
                 self.button_open.configure(state="normal")
-                self.button_quit.configure(state="normal")
                 return
 
         self.enable_state()
-        self.checkbox_spherical.configure(state="normal")
 
         infile = os.path.abspath(self.in_file)
         file_extension = os.path.splitext(infile)[1].lower()
@@ -110,9 +108,7 @@ class Application(Frame):
 
         if audio_metadata:
             self.var_spatial_audio.set(1)
-            self.options_ambisonics["text"] =\
-                audio_metadata.get_metadata_string()
-
+            print audio_metadata.get_metadata_string()
 
         self.update_state()
 
@@ -133,7 +129,6 @@ class Application(Frame):
         self.set_message("Successfully saved file to %s\n"
                          % ntpath.basename(self.save_file))
         self.button_open.configure(state="normal")
-        self.button_quit.configure(state="normal")
         self.update_state()
 
     def action_inject(self):
@@ -164,40 +159,23 @@ class Application(Frame):
 
     def enable_state(self):
         self.button_open.configure(state="normal")
-        self.button_quit.configure(state="normal")
 
     def disable_state(self):
-        self.checkbox_spherical.configure(state="disabled")
         self.checkbox_spatial_audio.configure(state="disabled")
         self.checkbox_3D.configure(state="disabled")
-        self.options_projection.configure(state="disabled")
-        self.options_ambisonics.configure(state="disabled")
         self.button_inject.configure(state="disabled")
         self.button_open.configure(state="disabled")
-        self.button_quit.configure(state="disabled")
 
     def update_state(self):
-        self.checkbox_spherical.configure(state="normal")
         if self.var_spherical.get():
             self.checkbox_3D.configure(state="normal")
-            self.options_projection.configure(state="normal")
             self.button_inject.configure(state="normal")
             if self.enable_spatial_audio:
                 self.checkbox_spatial_audio.configure(state="normal")
-                if self.var_spatial_audio.get():
-                    self.options_ambisonics.configure(state="normal")
-                else:
-                    self.options_ambisonics.configure(state="disable")
         else:
             self.checkbox_3D.configure(state="disabled")
-            self.options_projection.configure(state="disabled")
             self.button_inject.configure(state="disabled")
             self.checkbox_spatial_audio.configure(state="disabled")
-            if self.var_spatial_audio.get():
-                self.options_ambisonics.configure(state="normal")
-            else:
-                self.options_ambisonics.configure(state="disable")
-            self.options_ambisonics.configure(state="disabled")
 
     def set_error(self, text):
         self.label_message["text"] = text
@@ -205,7 +183,7 @@ class Application(Frame):
 
     def set_message(self, text):
         self.label_message["text"] = text
-        self.label_message.config(fg="green")
+        self.label_message.config(fg="blue")
 
     def create_widgets(self):
         """Sets up GUI contents."""
@@ -213,54 +191,40 @@ class Application(Frame):
         row = 0
         column = 0
 
-        # Spherical Checkbox
-        self.label_spherical = Label(self)
-        self.label_spherical["text"] = "Spherical"
-        self.label_spherical.grid(row=row, column=column)
-        column += 1
-
         self.var_spherical = IntVar()
-        self.checkbox_spherical = \
-            Checkbutton(self, variable=self.var_spherical)
-        self.checkbox_spherical["command"] = self.action_set_spherical
-        self.checkbox_spherical.grid(row=row, column=column, padx=14, pady=2)
+
+        PAD_X = 10
+
+        row = row + 1
+        column = 0
+        self.label_message = Label(self)
+        self.label_message["text"] = "Click Open to open your 360 video."
+        self.label_message.grid(row=row, column=column, rowspan=1,
+                                columnspan=2, padx=PAD_X, pady=10, sticky=W)
+
+        row = row + 1
+        separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
+        separator.grid(columnspan=row, padx=PAD_X, pady=4, sticky=N+E+S+W)
 
         # 3D
         column = 0
         row = row + 1
-        self.label_3D = Label(self)
-        self.label_3D["text"] = "3D Top-bottom"
-        self.label_3D.grid(row=row, column=column, padx=14, pady=2)
+        self.label_3D = Label(self, anchor=W)
+        self.label_3D["text"] = "My video is stereoscopic 3D (top/bottom layout)"
+        self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
         column += 1
 
         self.var_3d = IntVar()
         self.checkbox_3D = Checkbutton(self, variable=self.var_3d)
         self.checkbox_3D["command"] = self.action_set_3d
-        self.checkbox_3D.grid(row=row, column=column, padx=14, pady=2)
-
-        # Projection
-        column = 0
-        row = row + 1
-        self.label_projection = Label(self)
-        self.label_projection["text"] = "Projection"
-        self.label_projection.grid(row=row, column=column, padx=14, pady=2)
-        column += 1
-
-        self.options_projection = Label(self)
-        self.options_projection["text"] = "Equirectangular"
-        self.options_projection.grid(row=row, column=column, padx=14, pady=2)
-
-        # Spherical / Spatial Audio Separator
-        row += 1
-        separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
-        separator.grid(columnspan=row, padx=14, pady=4, sticky=N+E+S+W)
+        self.checkbox_3D.grid(row=row, column=column, padx=PAD_X, pady=2)
 
         # Spatial Audio Checkbox
         row += 1
         column = 0
-        self.label_spatial_audio = Label(self)
-        self.label_spatial_audio["text"] = "Spatial Audio"
-        self.label_spatial_audio.grid(row=row, column=column)
+        self.label_spatial_audio = Label(self, anchor=W)
+        self.label_spatial_audio["text"] = "My video has spatial audio (ambiX ACN/SN3D format)"
+        self.label_spatial_audio.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
 
         column += 1
         self.var_spatial_audio = IntVar()
@@ -270,31 +234,15 @@ class Application(Frame):
         self.checkbox_spatial_audio.grid(
             row=row, column=column, padx=0, pady=0)
 
-        # Ambisonics Type
-        column = 0
         row = row + 1
-        self.label_ambisonics = Label(self)
-        self.label_ambisonics["text"] = "Ambisonics Type"
-        self.label_ambisonics.grid(row=row, column=column, padx=14, pady=2)
-        column += 1
-
-        self.options_ambisonics = Label(self)
-        self.options_ambisonics["text"] = "1st-Order Periphonic, ACN, SN3D"
-        self.options_ambisonics.grid(row=row, column=column, padx=14, pady=2)
-
-        # Message Box
-        row = row + 1
-        column = 0
-        self.label_message = Label(self)
-        self.label_message["text"] = ""
-        self.label_message.grid(row=row, column=column, rowspan=1,
-                                columnspan=2, padx=14, pady=2)
+        separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
+        separator.grid(columnspan=row, padx=PAD_X, pady=10, sticky=N+E+S+W)
 
         # Button Frame
         column = 0
         row = row + 1
         buttons_frame = Frame(self)
-        buttons_frame.grid(row=row, column=0, columnspan=3, padx=14, pady=2)
+        buttons_frame.grid(row=row, column=0, columnspan=3, padx=PAD_X, pady=10)
 
         self.button_open = Button(buttons_frame)
         self.button_open["text"] = "Open"
@@ -303,16 +251,10 @@ class Application(Frame):
         self.button_open.grid(row=0, column=0, padx=14, pady=2)
 
         self.button_inject = Button(buttons_frame)
-        self.button_inject["text"] = "Save as"
+        self.button_inject["text"] = "Inject metadata"
         self.button_inject["fg"] = "black"
         self.button_inject["command"] = self.action_inject
         self.button_inject.grid(row=0, column=1, padx=14, pady=2)
-
-        self.button_quit = Button(buttons_frame)
-        self.button_quit["text"] = "Quit"
-        self.button_quit["fg"] = "black"
-        self.button_quit["command"] = self.quit
-        self.button_quit.grid(row=0, column=2, padx=14, pady=2)
 
     def __init__(self, master=None):
         master.wm_title("Spatial Media Metadata Injector")
