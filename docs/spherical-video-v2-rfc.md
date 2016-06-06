@@ -1,17 +1,17 @@
 # Spherical Video V2 RFC (draft)
 *This document describes a revised open metadata scheme by which MP4 (ISOBMFF)
-multimedia containers may accommodate spherical videos. Comments are welcome on
-the [spatial-media-discuss]
-(https://groups.google.com/forum/#!forum/spatial-media-discuss)
-mailing list or by [filing an issue]
-(https://github.com/google/spatial-media/issues) on GitHub.*
+multimedia containers may accommodate spherical videos. Comments are welcome by
+discussing on the [Spatial Media Google
+group](https://groups.google.com/forum/#!forum/spatial-media-discuss) or by
+filing an [issue](https://github.com/google/spatial-media/issues/new) on
+GitHub.*
 
 ------------------------------------------------------
 
 ## Metadata Format
 
 ### MP4 (ISOBMFF)
-Spherical video metadata is stored in a new box, `SV3D`, defined in this RFC, in
+Spherical video metadata is stored in a new box, `sv3d`, defined in this RFC, in
 an MP4 (ISOBMFF) container. The metadata is applicable to individual video
 tracks in the container.
 
@@ -20,9 +20,9 @@ possible for a file to contain both the V1 and V2 metadata. If both V1 and V2
 metadata are contained they should contain semantically equivalent information,
 with V2 taking priority when they differ.
 
-#### Spherical Video Box (SV3D)
+#### Spherical Video Box (sv3d)
 ##### Definition
-Box Type: `SV3D`  
+Box Type: `sv3d`  
 Container: Video Sample Description box (e.g. `avc1`, `mp4v`, `apcn`)  
 Mandatory: No  
 Quantity: Zero or one
@@ -32,14 +32,14 @@ video track.
 
 ##### Syntax
 ```
-aligned(8) class SphericalVideoBox extends Box(‘SV3D’) {
+aligned(8) class SphericalVideoBox extends Box(‘sv3d’) {
 }
 ```
 
-#### Spherical Video Header (SVHD)
+#### Spherical Video Header (svhd)
 ##### Definition
-Box Type: `SVHD`  
-Container: `SV3D`  
+Box Type: `svhd`  
+Container: `sv3d`  
 Mandatory: Yes  
 Quantity: Exactly one
 
@@ -47,7 +47,7 @@ Contains spherical video information unrelated to the projection format.
 
 ##### Syntax
 ```
-aligned(8) class SphericalVideoHeader extends FullBox(‘SVHD’, 0, 0) {
+aligned(8) class SphericalVideoHeader extends FullBox(‘svhd’, 0, 0) {
     string metadata_source;
 }
 ```
@@ -57,27 +57,27 @@ aligned(8) class SphericalVideoHeader extends FullBox(‘SVHD’, 0, 0) {
 - `metadata_source` is a string identifier for the source tool of the SV3D
 metadata.
 
-#### Projection Box (PROJ)
+#### Projection Box (proj)
 ##### Definition
-Box Type: `PROJ`  
-Container: `SV3D`  
+Box Type: `proj`  
+Container: `sv3d`  
 Mandatory: Yes  
 Quantity: Exactly one
 
 Container for projection information about the spherical video content.
-This container must contain exactly one projection (e.g. an `EQUI` box) which
-defines the spherical video's projection.
+This container must contain exactly one subtype of the Projection Data Box
+(e.g. an `equi` box) that defines the spherical projection.
 
 ##### Syntax
 ```
-aligned(8) class Projection extends Box(‘PROJ’) {
+aligned(8) class Projection extends Box(‘proj’) {
 }
 ```
 
-#### Projection Header Box (PRHD)
+#### Projection Header Box (prhd)
 ##### Definition
-Box Type: `PRHD`  
-Container: `PROJ`  
+Box Type: `prhd`  
+Container: `proj`  
 Mandatory: Yes  
 Quantity: Exactly one
 
@@ -86,7 +86,7 @@ independent of the video projection.
 
 ##### Syntax
 ```
-aligned(8) class ProjectionHeader extends FullBox(‘PROJ’, 0, 0) {
+aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
     unsigned int(8) stereo_mode;
 
     int(32) pose_yaw_degrees;
@@ -118,12 +118,12 @@ aligned(8) class ProjectionHeader extends FullBox(‘PROJ’, 0, 0) {
 #### Projection Data Box
 ##### Definition
 Box Type: Projection Dependent Identifier  
-Container: `PROJ`  
+Container: `proj`  
 Mandatory: Yes  
 Quantity: Exactly one
 
 Base class for all projection data boxes. Any new projection must subclass this
-type with a unique proj_type.
+type with a unique `proj_type`.
 
 ##### Syntax
 ```
@@ -132,10 +132,10 @@ aligned(8) class ProjectionDataBox(unsigned int(32) proj_type, unsigned int(32) 
 }
 ```
 
-#### Cubemap Projection Box (CBMP)
+#### Cubemap Projection Box (cbmp)
 ##### Definition
-Box Type: `CBMP`  
-Container: `PROJ`
+Box Type: `cbmp`  
+Container: `proj`
 
 Contains the projection dependent information for a cubemap video. The
 [cubemap's](https://en.wikipedia.org/wiki/Cube_mapping) face layout is defined
@@ -143,7 +143,7 @@ by a unique `layout` value.
 
 ##### Syntax
 ```
-aligned(8) class CubemapProjection ProjectionDataBox(‘CBMP’, 0, 0) {
+aligned(8) class CubemapProjection ProjectionDataBox(‘cbmp’, 0, 0) {
     unsigned int(32) layout;
     unsigned int(32) padding;
 }
@@ -174,10 +174,10 @@ aligned(8) class CubemapProjection ProjectionDataBox(‘CBMP’, 0, 0) {
 - `padding` is a 32-bit unsigned integer measuring the number of pixels to pad
     from the edge of each cube face.
 
-#### Equirectangular Projection Box (EQUI)
+#### Equirectangular Projection Box (equi)
 ##### Definition
-Box Type: `EQUI`  
-Container: `PROJ`
+Box Type: `equi`  
+Container: `proj`
 
 Contains the projection dependent information for a equirectangular video. The
 [equirectangular projection](
@@ -188,66 +188,53 @@ frame.
 
 ##### Syntax
 ```
-aligned(8) class EquirectangularProjection ProjectionDataBox(‘EQUI’, 0, 0) {
-    unsigned int(32) crop_top;
-    unsigned int(32) crop_bottom;
-    unsigned int(32) crop_left;
-    unsigned int(32) crop_right;
+aligned(8) class EquirectangularProjection ProjectionDataBox(‘equi’, 0, 0) {
+    unsigned int(32) projection_bounds_top;
+    unsigned int(32) projection_bounds_bottom;
+    unsigned int(32) projection_bounds_left;
+    unsigned int(32) projection_bounds_right;
 }
 ```
 
 ##### Semantics
 
-- The crop values use a 0.32 fixed point float. These values repesent the
+- The projection bounds use 0.32 fixed point values. These values represent the
   proportion of projection cropped from each edge not covered by the video
   frame. For an uncropped frame all values are 0.
-  - `crop_top` is the amount from the top of the frame to crop
-  - `crop_bottom` is the amount from the bottom of the frame to crop; must be
-    less than 0xFFFFFFFF - crop_top
-  - `crop_left` is the amount from the left of the frame to crop
-  - `crop_right` is the amount from the right of the frame to crop; must be
-    less than 0xFFFFFFFF - crop_left
+  - `projection_bounds_top` is the amount from the top of the frame to crop
+  - `projection_bounds_bottom` is the amount from the bottom of the frame to
+     crop; must be less than 0xFFFFFFFF - projection_bounds_top
+  - `projection_bounds_left` is the amount from the left of the frame to crop
+  - `projection_bounds_right` is the amount from the right of the frame to crop;
+     must be less than 0xFFFFFFFF - projection_bounds_left
 
 ### Example
 
 Here is an example box hierarchy for a file containing the SV3D metadata for a
 monoscopic equirectangular video:
 
-- moov
-  - trak
-    - mdia
-      - minf
-        - stbl
-          - stsd
-            - avc1
-              - pasp
-              - SV3D
-                - SVHD
-                - PROJ
-                  - PRHD
-                  - EQUI
-
-where the SVHD box contains:
-
-| Field Name | Value |
-|:-----------|:------|
-| `metadata_source`| `Spherical Metadata Tooling` |
-
-the PRHD box contains:
-
-| Field Name | Value |
-|:-----------|:-----|
-| `stereo_mode` | `0` |
-| `pose_yaw_degrees` | `0` |
-| `pose_pitch_degrees` | `0` |
-| `pose_roll_degrees` | `0` |
-
-and the EQUI box contains:
-
-| Field Name | Value |
-|:-----------|:-----|
-| `crop_top` | `0` |
-| `crop_bottom` | `0` |
-| `crop_left` | `0` |
-| `crop_right` | `0` |
+```
+[moov: Movie Box]
+  [mdia: Media Box]
+    [minf: Media Information Box]
+      [stbl: Sample Table Box]
+        [stsd: Sample Table Sample Descriptor]
+          [avc1: Advance Video Coding Box]
+            [pasp: Pixel Aspect Ratio Box]
+              ...
+            [sv3d: Spherical Video Box]
+              [svhd: Spherical Video Header Box]
+                metadata_source = "Spherical Metadata Tooling"
+              [proj: Projection Box]
+                [prhd: Projection Header Box]
+                  stereo_mode = 0
+                  pose_yaw_degrees = 0
+                  pose_pitch_degrees = 0
+                  pose_roll_degrees = 0
+                [equi: Equirectangular Projection Box]
+                  projection_bounds_top = 0
+                  projection_bounds_bottom = 0
+                  projection_bounds_left = 0
+                  projection_bounds_right = 0
+```
 
