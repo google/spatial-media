@@ -24,6 +24,8 @@ import ntpath
 import os
 import sys
 import tkFileDialog
+import tkMessageBox
+import traceback
 
 try:
     from Tkinter import *
@@ -276,8 +278,13 @@ class Application(Frame):
         self.after(50, lambda: master.attributes("-topmost", False))
         self.enable_spatial_audio = False
 
+def report_callback_exception(self, *args):
+    exception = traceback.format_exception(*args)
+    tkMessageBox.showerror("Error", exception)
+
 def main():
     root = Tk()
+    Tk.report_callback_exception = report_callback_exception
     app = Application(master=root)
     app.mainloop()
 
