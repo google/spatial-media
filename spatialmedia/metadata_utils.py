@@ -253,9 +253,9 @@ def parse_spherical_xml(contents, console):
             index = contents.find("<rdf:SphericalVideo")
             if index != -1:
                 index += len("<rdf:SphericalVideo")
-                contents = contents[:index] + rdf_prefix + contents[index:]
+                contents = contents[:index] + RDF_PREFIX + contents[index:]
             parsed_xml = xml.etree.ElementTree.XML(contents)
-            console("\t\tWarning missing rdf prefix:", rdf_prefix)
+            console("\t\tWarning missing rdf prefix:", RDF_PREFIX)
         except xml.etree.ElementTree.ParseError as e:
             console("\t\tParser Error on XML")
             console(e)
