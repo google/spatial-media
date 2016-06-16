@@ -30,11 +30,8 @@ import traceback
 try:
     from Tkinter import *
 except ImportError:
-    try:
-        from tkinter import *
-    except ImportError:
-        print("Tkinter library is not available.")
-        exit(0)
+    print("Tkinter library is not available.")
+    exit(0)
 
 path = os.path.dirname(sys.modules[__name__].__file__)
 path = os.path.join(path, '..')
