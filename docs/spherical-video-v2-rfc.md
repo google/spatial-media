@@ -13,12 +13,43 @@ GitHub.*
 ### MP4 (ISOBMFF)
 Spherical video metadata is stored in a new box, `sv3d`, defined in this RFC, in
 an MP4 (ISOBMFF) container. The metadata is applicable to individual video
-tracks in the container.
+tracks in the container. Since many spherical videos are also stereoscopic, this
+RFC also defines an additional optional box, `st3d`, to specify metadata specific
+to stereoscopic rendering.
 
 As the V2 specification stores its metadata in a different location, it is
 possible for a file to contain both the V1 and V2 metadata. If both V1 and V2
 metadata are contained they should contain semantically equivalent information,
 with V2 taking priority when they differ.
+
+#### Stereoscopic 3D Video Box (st3d)
+##### Definition
+Box Type: `st3d`  
+Container: Video Sample Description box (e.g. `avc1`, `mp4v`, `apcn`)  
+Mandatory: No  
+Quantity: Zero or one
+
+Stores additional information about stereoscopic rendering in this
+video track.
+
+##### Syntax
+```
+aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
+    unsigned int(8) stereo_mode;
+}
+```
+
+##### Semantics
+
+- `stereo_mode` is an 8-bit unsigned integer that specifies the stereo frame
+   layout. The values 0 to 255 are reserved for current and future layouts. The
+   following values are defined:
+
+| `stereo_mode` | Stereo Mode Description |
+|:-----------------|:---------------------------|
+|   `0`   | **Monoscopic**: Indicates the video frame contains a single monoscopic view. |
+|   `1`   | **Stereoscopic Top-Bottom**: Indicates the video frame contains a stereoscopic view storing the left eye on top half of the frame and right eye at the bottom half of the frame.|
+|   `2`   | **Stereoscopic Left-Right**: Indicates the video frame contains a stereoscopic view storing the left eye on left half of the frame and right eye on the right half of the frame.|
 
 #### Spherical Video Box (sv3d)
 ##### Definition
@@ -87,8 +118,6 @@ independent of the video projection.
 ##### Syntax
 ```
 aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
-    unsigned int(8) stereo_mode;
-
     int(32) pose_yaw_degrees;
     int(32) pose_pitch_degrees;
     int(32) pose_roll_degrees;
@@ -96,16 +125,6 @@ aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
 ```
 
 ##### Semantics
-
-- `stereo_mode` is an 8-bit unsigned integer that specifies the stereo frame
-   layout. The values 0 to 255 are reserved for current and future layouts. The
-   following values are defined:
-
-| `stereo_mode` | Stereo Mode Description |
-|:-----------------|:---------------------------|
-|   `0`   | **Monoscopic**: Indicates the video frame contains a single monoscopic view. |
-|   `1`   | **Stereoscopic Top-Bottom**: Indicates the video frame contains a stereoscopic view storing the left eye on top half of the frame and right eye at the bottom half of the frame.|
-|   `2`   | **Stereoscopic Left-Right**: Indicates the video frame contains a stereoscopic view storing the left eye on left half of the frame and right eye on the right half of the frame.|
 
 - Pose values are 16.16 fixed point values measuring rotation in degrees. These
   rotations transform the the projection as follows:
@@ -222,12 +241,14 @@ monoscopic equirectangular video:
           [avc1: Advance Video Coding Box]
             [pasp: Pixel Aspect Ratio Box]
               ...
+            [st3d: Stereoscopic 3D Video Box]
+              [mo3d: Stereocopic mode]
+                unsigned int(8) stereo_mode;
             [sv3d: Spherical Video Box]
               [svhd: Spherical Video Header Box]
                 metadata_source = "Spherical Metadata Tooling"
               [proj: Projection Box]
                 [prhd: Projection Header Box]
-                  stereo_mode = 0
                   pose_yaw_degrees = 0
                   pose_pitch_degrees = 0
                   pose_roll_degrees = 0
