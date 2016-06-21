@@ -44,7 +44,7 @@ class Console(object):
         self.log = []
 
     def append(self, text):
-        print text
+        print(text.encode('utf-8'))
         self.log.append(text)
 
 
