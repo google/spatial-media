@@ -79,6 +79,7 @@ class Application(Frame):
                 return
 
         self.enable_state()
+        self.checkbox_spherical.configure(state="normal")
 
         infile = os.path.abspath(self.in_file)
         file_extension = os.path.splitext(infile)[1].lower()
@@ -160,12 +161,14 @@ class Application(Frame):
         self.button_open.configure(state="normal")
 
     def disable_state(self):
+        self.checkbox_spherical.configure(state="disabled")
         self.checkbox_spatial_audio.configure(state="disabled")
         self.checkbox_3D.configure(state="disabled")
         self.button_inject.configure(state="disabled")
         self.button_open.configure(state="disabled")
 
     def update_state(self):
+        self.checkbox_spherical.configure(state="normal")
         if self.var_spherical.get():
             self.checkbox_3D.configure(state="normal")
             self.button_inject.configure(state="normal")
@@ -190,8 +193,6 @@ class Application(Frame):
         row = 0
         column = 0
 
-        self.var_spherical = IntVar()
-
         PAD_X = 10
 
         row = row + 1
@@ -205,8 +206,21 @@ class Application(Frame):
         separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
         separator.grid(columnspan=row, padx=PAD_X, pady=4, sticky=N+E+S+W)
 
+        # Spherical Checkbox
+        row += 1
+        self.label_spherical = Label(self, anchor=W)
+        self.label_spherical["text"] = "My video is spherical (360)"
+        self.label_spherical.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        column += 1
+
+        self.var_spherical = IntVar()
+        self.checkbox_spherical = Checkbutton(self, variable=self.var_spherical)
+        self.checkbox_spherical["command"] = self.action_set_spherical
+        self.checkbox_spherical.grid(row=row, column=column, padx=PAD_X, pady=2)
+
         # 3D
         row = row + 1
+        column = 0
         self.label_3D = Label(self, anchor=W)
         self.label_3D["text"] = "My video is stereoscopic 3D (top/bottom layout)"
         self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
