@@ -21,6 +21,7 @@ import os
 import re
 import StringIO
 import struct
+import traceback
 import xml.etree
 import xml.etree.ElementTree
 
@@ -250,6 +251,8 @@ def parse_spherical_xml(contents, console):
         parsed_xml = xml.etree.ElementTree.XML(contents)
     except xml.etree.ElementTree.ParseError:
         try:
+            console(traceback.format_exc())
+            console(contents)
             index = contents.find("<rdf:SphericalVideo")
             if index != -1:
                 index += len("<rdf:SphericalVideo")
@@ -258,7 +261,7 @@ def parse_spherical_xml(contents, console):
             console("\t\tWarning missing rdf prefix:", RDF_PREFIX)
         except xml.etree.ElementTree.ParseError as e:
             console("\t\tParser Error on XML")
-            console(e)
+            console(traceback.format_exc())
             console(contents)
             return
 
