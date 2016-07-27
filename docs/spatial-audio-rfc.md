@@ -61,7 +61,7 @@ aligned(8) class SpatialAudioBox extends Box(‘SA3D’) {
 
   For example, consider a 4-channel audio track containing ambisonic components *W*, *X*, *Y*, *Z* at channel indexes 0, 1, 2, 3, respectively. For `ambisonic_channel_ordering = 0` (ACN), the ordering of components should be *W*, *Y*, *Z*, *X*, so the `channel_map` sequence should be `0`, `2`, `3`, `1`.
 
-  As a simpler example, for a 4-channel audio track containing ambisonic components *W*, *Y*, *Z*, *X* at channel indexes 0, 1, 2, 3, respectively, the `channel_map` sequence should be specified as `0`, `1`, `2`, `3` when `ambisonics_channel_odering = 0` (ACN).
+  As a simpler example, for a 4-channel audio track containing ambisonic components *W*, *Y*, *Z*, *X* at channel indexes 0, 1, 2, 3, respectively, the `channel_map` sequence should be specified as `0`, `1`, `2`, `3` when `ambisonic_channel_ordering = 0` (ACN).
 
 ##### Example
 
