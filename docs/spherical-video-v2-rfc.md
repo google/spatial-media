@@ -34,7 +34,7 @@ video track.
 
 ##### Syntax
 ```
-aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
+aligned(8) class Stereoscopic3D extends FullBox(‘st3d’, 0, 0) {
     unsigned int(8) stereo_mode;
 }
 ```
