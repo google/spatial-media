@@ -14,8 +14,8 @@ GitHub.*
 Spherical video metadata is stored in a new box, `sv3d`, defined in this RFC, in
 an MP4 (ISOBMFF) container. The metadata is applicable to individual video
 tracks in the container. Since many spherical videos are also stereoscopic, this
-RFC also defines an additional optional box, `st3d`, to specify metadata specific
-to stereoscopic rendering.
+RFC also defines an additional optional box, `st3d`, to specify metadata
+specific to stereoscopic rendering.
 
 As the V2 specification stores its metadata in a different location, it is
 possible for a file to contain both the V1 and V2 metadata. If both V1 and V2
@@ -25,12 +25,14 @@ with V2 taking priority when they differ.
 #### Stereoscopic 3D Video Box (st3d)
 ##### Definition
 Box Type: `st3d`  
-Container: Video Sample Description box (e.g. `avc1`, `mp4v`, `apcn`)  
+Container: VisualSampleEntry (e.g. `avc1`, `mp4v`, `apcn`)  
 Mandatory: No  
 Quantity: Zero or one
 
-Stores additional information about stereoscopic rendering in this
-video track.
+Stores additional information about stereoscopic rendering in this video track.
+This box must come after non-optional boxes defined by the ISOBMFF
+specification and before optional boxes at the end of the VisualSampleEntry
+definition such as the CleanApertureBox and PixelAspectRatioBox.
 
 ##### Syntax
 ```
@@ -54,12 +56,16 @@ aligned(8) class Stereoscopic3D extends FullBox(‘st3d’, 0, 0) {
 #### Spherical Video Box (sv3d)
 ##### Definition
 Box Type: `sv3d`  
-Container: Video Sample Description box (e.g. `avc1`, `mp4v`, `apcn`)  
+Container: VisualSampleEntry (e.g. `avc1`, `mp4v`, `apcn`)  
 Mandatory: No  
 Quantity: Zero or one
 
 Stores additional information about spherical video content contained in this
-video track.
+video track. This box must come after non-optional boxes defined by the ISOBMFF
+specification and before optional boxes at the end of the VisualSampleEntry
+definition such as the CleanApertureBox and PixelAspectRatioBox. This box should
+be placed after the Stereoscopic3D box if one is present.
+
 
 ##### Syntax
 ```
@@ -128,11 +134,12 @@ aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
 
 - Pose values are 16.16 fixed point values measuring rotation in degrees. These
   rotations transform the the projection as follows:
-  - `pose_yaw_degrees` clockwise rotation by the up vector
-  - `pose_pitch_degrees` counter-clockwise rotation over the right vector post
-     yaw transform
-  - `pose_roll_degrees` counter clockwise-rotation over the forward vector post
-     yaw and pitch transform
+  - `pose_yaw_degrees` clockwise rotation in degrees around the up vector,
+     restricted to -180.0 to 180.0
+  - `pose_pitch_degrees` counter-clockwise rotation in degrees around the right
+     vector post yaw transform, restricted to -90.0 to 90.0
+  - `pose_roll_degrees` counter clockwise-rotation in degrees around the forward
+     vector post yaw and pitch transform, restricted to -180.0 to 180.0
 
 #### Projection Data Box
 ##### Definition
@@ -239,11 +246,10 @@ monoscopic equirectangular video:
       [stbl: Sample Table Box]
         [stsd: Sample Table Sample Descriptor]
           [avc1: Advance Video Coding Box]
-            [pasp: Pixel Aspect Ratio Box]
+            [avcC: AVC Configuration Box]
               ...
             [st3d: Stereoscopic 3D Video Box]
-              [mo3d: Stereocopic mode]
-                unsigned int(8) stereo_mode;
+              stereo_mode = 0
             [sv3d: Spherical Video Box]
               [svhd: Spherical Video Header Box]
                 metadata_source = "Spherical Metadata Tooling"
@@ -257,5 +263,7 @@ monoscopic equirectangular video:
                   projection_bounds_bottom = 0
                   projection_bounds_left = 0
                   projection_bounds_right = 0
+            [pasp: Pixel Aspect Ratio Box]
+              ...
 ```
 
