@@ -1,6 +1,6 @@
 # Spherical Video V2 RFC (draft)
 *This document describes a revised open metadata scheme by which MP4 (ISOBMFF)
-multimedia containers may accommodate spherical videos. Comments are welcome by
+and WebM (Matroska) multimedia containers may accommodate spherical videos. Comments are welcome by
 discussing on the [Spatial Media Google
 group](https://groups.google.com/forum/#!forum/spatial-media-discuss) or by
 filing an [issue](https://github.com/google/spatial-media/issues/new) on
@@ -279,26 +279,26 @@ information, with V2 taking priority when they differ.
 
 #### `Projection` master element
 ##### Definition
-ID: 0x7670 \
-Level: 4 \
-Mandatory: No \
-Type: Master  \
-Default: N/A \
-Minver: 4 \
-WebM: Yes \
+ID: 0x7670  
+Level: 4  
+Mandatory: No  
+Type: Master   
+Default: N/A  
+Minver: 4  
+WebM: Yes  
 Container: `Video` master element
 
 Describes the video projection details. Used to render spherical and VR videos.
 
 #### `ProjectionType` element
 ##### Definition
-ID: 0x7671 \
-Level: 5 \
-Mandatory: Yes \
-Type: uinteger \
-Default: 0 \
-Minver: 4 \
-WebM: Yes \
+ID: 0x7671  
+Level: 5  
+Mandatory: Yes  
+Type: uinteger  
+Default: 0  
+Minver: 4  
+WebM: Yes  
 Container: `Projection` master element
 
 Describes the projection used for this video track.
@@ -313,16 +313,16 @@ Describes the projection used for this video track.
 
 #### `ProjectionPrivate` element
 ##### Definition
-ID: 0x7672 \
-Level: 5 \
-Mandatory: No \
-Type: binary  \
-Default: N/A \
-Minver: 4 \
-WebM: Yes \
+ID: 0x7672  
+Level: 5  
+Mandatory: No  
+Type: binary   
+Default: N/A  
+Minver: 4  
+WebM: Yes  
 Container: `Projection` master element
 
-Private data known only to the projection codec.
+Private data that only applies to a specific projection.
 
 ##### Semantics
  * If `ProjectionType` equals 0 (Rectangular), then this element must not be
@@ -332,7 +332,7 @@ present.
 ISOBMFF Equirectangular Projection Box ('equi').
  * If `ProjectionType` equals 2 (Cubemap), then this element must be present
 and contain the same binary data that would be stored inside an ISOBMFF
-Cubemap Projection Box('cbmp').
+Cubemap Projection Box ('cbmp').
 
 Note: ISOBMFF box size and fourcc fields are not included in the binary
 data, but the FullBox version and flag fields are. This is to avoid
@@ -341,13 +341,13 @@ between the two container formats.
 
 #### `ProjectionPoseYaw` element
 ##### Definition
-ID: 0x7673 \
-Level: 5 \
-Mandatory: Yes \
-Type: float  \
-Default: 0.0 \
-Minver: 4 \
-WebM: Yes \
+ID: 0x7673  
+Level: 5  
+Mandatory: Yes  
+Type: float   
+Default: 0.0  
+Minver: 4  
+WebM: Yes  
 Container: Projection master element
 
 Specifies a yaw rotation to the projection.
@@ -360,13 +360,13 @@ This rotation must be applied before any `ProjectionPosePitch` or
 
 #### `ProjectionPosePitch` element
 ##### Definition
-ID: 0x7674 \
-Level: 5 \
-Mandatory: Yes \
-Type: float  \
-Default: 0.0 \
-Minver: 4 \
-WebM: Yes \
+ID: 0x7674  
+Level: 5  
+Mandatory: Yes  
+Type: float   
+Default: 0.0  
+Minver: 4  
+WebM: Yes  
 Container: Projection master element
 
 Specifies a pitch rotation to the projection.
@@ -379,13 +379,13 @@ should be in the -90 to 90 degree range.
 
 #### `ProjectionPoseRoll` element
 ##### Definition
-ID: 0x7675 \
-Level: 5 \
-Mandatory: Yes \
-Type: float  \
-Default: 0.0 \
-Minver: 4 \
-WebM: Yes \
+ID: 0x7675  
+Level: 5  
+Mandatory: Yes  
+Type: float   
+Default: 0.0  
+Minver: 4  
+WebM: Yes  
 Container: Projection master element
 
 Specifies a roll rotation to the projection.
