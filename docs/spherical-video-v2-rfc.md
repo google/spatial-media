@@ -1,6 +1,6 @@
 # Spherical Video V2 RFC (draft)
 *This document describes a revised open metadata scheme by which MP4 (ISOBMFF)
-multimedia containers may accommodate spherical videos. Comments are welcome by
+and WebM (Matroska) multimedia containers may accommodate spherical videos. Comments are welcome by
 discussing on the [Spatial Media Google
 group](https://groups.google.com/forum/#!forum/spatial-media-discuss) or by
 filing an [issue](https://github.com/google/spatial-media/issues/new) on
@@ -267,3 +267,155 @@ monoscopic equirectangular video:
               ...
 ```
 
+### WebM (Matroska)
+Spherical video metadata is stored in a new master element, `Projection`,
+placed inside a video track's `Video` master element.
+
+
+As the V2 specification stores its metadata in a different location, it is
+possible for a file to contain both the V1 and V2 metadata. If both V1 and
+V2 metadata are contained they should contain semantically equivalent
+information, with V2 taking priority when they differ.
+
+#### `Projection` master element
+##### Definition
+ID: 0x7670  
+Level: 4  
+Mandatory: No  
+Type: Master   
+Default: N/A  
+Minver: 4  
+WebM: Yes  
+Container: `Video` master element
+
+Describes the video projection details. Used to render spherical and VR videos.
+
+#### `ProjectionType` element
+##### Definition
+ID: 0x7671  
+Level: 5  
+Mandatory: Yes  
+Type: uinteger  
+Default: 0  
+Minver: 4  
+WebM: Yes  
+Container: `Projection` master element
+
+Describes the projection used for this video track.
+
+##### Semantics
+`ProjectionType` is an enum. The valid values are:
+
+* 0: Rectangular
+* 1: Equirectangular
+* 2: Cubemap
+
+
+#### `ProjectionPrivate` element
+##### Definition
+ID: 0x7672  
+Level: 5  
+Mandatory: No  
+Type: binary   
+Default: N/A  
+Minver: 4  
+WebM: Yes  
+Container: `Projection` master element
+
+Private data that only applies to a specific projection.
+
+##### Semantics
+ * If `ProjectionType` equals 0 (Rectangular), then this element must not be
+present.
+ * If `ProjectionType` equals 1 (Equirectangular), then this element must be
+ present and contain the same binary data that would be stored inside an
+ISOBMFF Equirectangular Projection Box ('equi').
+ * If `ProjectionType` equals 2 (Cubemap), then this element must be present
+and contain the same binary data that would be stored inside an ISOBMFF
+Cubemap Projection Box ('cbmp').
+
+Note: ISOBMFF box size and fourcc fields are not included in the binary
+data, but the FullBox version and flag fields are. This is to avoid
+redundant framing information while preserving versioning and semantics
+between the two container formats.
+
+#### `ProjectionPoseYaw` element
+##### Definition
+ID: 0x7673  
+Level: 5  
+Mandatory: Yes  
+Type: float   
+Default: 0.0  
+Minver: 4  
+WebM: Yes  
+Container: Projection master element
+
+Specifies a yaw rotation to the projection.
+
+##### Semantics
+Value represents a clockwise rotation, in degrees, around the up vector.
+This rotation must be applied before any `ProjectionPosePitch` or
+`ProjectionPoseRoll` rotations. The value of this field should be in the
+ -180 to 180 degree range.
+
+#### `ProjectionPosePitch` element
+##### Definition
+ID: 0x7674  
+Level: 5  
+Mandatory: Yes  
+Type: float   
+Default: 0.0  
+Minver: 4  
+WebM: Yes  
+Container: Projection master element
+
+Specifies a pitch rotation to the projection.
+
+##### Semantics
+Value represents a counter-clockwise rotation, in degrees, around the right
+vector. This rotation must be applied after the `ProjectionPoseYaw` rotation
+and before the `ProjectionPoseRoll` rotation. The value of this field
+should be in the -90 to 90 degree range.
+
+#### `ProjectionPoseRoll` element
+##### Definition
+ID: 0x7675  
+Level: 5  
+Mandatory: Yes  
+Type: float   
+Default: 0.0  
+Minver: 4  
+WebM: Yes  
+Container: Projection master element
+
+Specifies a roll rotation to the projection.
+
+##### Semantics
+Value represents a counter-clockwise rotation, in degrees, around the forward
+vector. This rotation must be applied after the `ProjectionPoseYaw` and
+`ProjectionPosePitch` rotations. The value of this field should be in
+the -180 to 180 degree range.
+
+### Example
+
+Here is an example element hierarchy for a file containing the Projection
+metadata for a stereo left-right equirectangular video:
+
+```
+[Segment]
+  [Tracks]
+    [TrackEntry]
+      ...
+      [Video]
+        ...
+        [StereoMode value = 1]
+        [Projection]
+            [ProjectionType value = 1]
+            [ProjectionPrivate]
+              flags = 0
+              version = 0
+              projection_bounds_top = 0
+              projection_bounds_bottom = 0
+              projection_bounds_left = 0
+              projection_bounds_right = 0
+```
