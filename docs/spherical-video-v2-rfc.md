@@ -149,7 +149,8 @@ Mandatory: Yes
 Quantity: Exactly one
 
 Base class for all projection data boxes. Any new projection must subclass this
-type with a unique `proj_type`.
+type with a unique `proj_type`. There must not be more than one subclass of a
+ProjectionDataBox in a given `proj` box.
 
 ##### Syntax
 ```
@@ -163,9 +164,10 @@ aligned(8) class ProjectionDataBox(unsigned int(32) proj_type, unsigned int(32) 
 Box Type: `cbmp`  
 Container: `proj`
 
-Contains the projection dependent information for a cubemap video. The
-[cubemap's](https://en.wikipedia.org/wiki/Cube_mapping) face layout is defined
-by a unique `layout` value.
+Specifies that the track uses a CubeMap projection and contains additional
+projection dependent information. The
+[cubemap's](https://en.wikipedia.org/wiki/Cube_mapping) face layout is
+defined by a unique `layout` value.
 
 ##### Syntax
 ```
@@ -205,7 +207,7 @@ aligned(8) class CubemapProjection ProjectionDataBox(‘cbmp’, 0, 0) {
 Box Type: `equi`  
 Container: `proj`
 
-Contains the projection dependent information for a equirectangular video. The
+Specifies that the track uses an equirectangular projection. The
 [equirectangular projection](
 https://en.wikipedia.org/wiki/Equirectangular_projection) should be arranged
 such that the default pose has the forward vector in the center of the frame,
@@ -233,6 +235,184 @@ aligned(8) class EquirectangularProjection ProjectionDataBox(‘equi’, 0, 0) {
   - `projection_bounds_left` is the amount from the left of the frame to crop
   - `projection_bounds_right` is the amount from the right of the frame to crop;
      must be less than 0xFFFFFFFF - projection_bounds_left
+
+#### Mesh Projection Box (mshp)
+##### Definition
+Box Type: `mshp`  
+Container: `proj`
+
+Specifies that the track uses mesh projection. A mesh projection describes the
+video projection in the form of a 3D mesh and associated metadata.
+
+##### Syntax
+```
+aligned(8) class MeshProjection ProjectionDataBox(‘mshp’, 0, 0) {
+    unsigned int(32) crc;
+    unsigned int(32) encoding_four_cc;
+
+    // All bytes below this point are compressed according to
+    // the algorithm specified by the encoding_four_cc field.
+    MeshBox() meshes[]; // At least 1 mesh box must be present.
+    Box(); // further boxes as needed
+}
+```
+
+##### Semantics
+- `crc` is the CRC32 of every byte following the CRC until the end of the
+  MeshProjection box.
+- `encoding_four_cc` is the encoding/compression algorithm used for all bytes
+  that follow this field until the end of the MeshProjection box.
+
+  Supported compression algorithms are:
+  - 'raw&nbsp;' (0x72617720) signals no compression or encoding.
+  - 'dfl8' (0x64666c38) signals raw deflate compression that does not have zlib
+     or gzip headers or a checksum. (https://tools.ietf.org/html/rfc1951)
+
+- `meshes` contain the projection meshes for rendering.  If there is only one
+  mesh box, it represents the left eye / monocular view and the stereo layout
+  field expressed separately in the media container is used to determine
+  the right eye view. If the mshp box contains two mesh boxes, the first box
+  represents the left eye mesh and the second box represents the right eye
+  mesh.
+
+#### Mesh Box (mesh)
+##### Definition
+Box Type: `mesh`  
+Container: `mshp`  
+Mandatory: Yes  
+Quantity: One or Two
+
+Contains vertex and texture coordinate information required to render the
+projected video correctly.
+
+A 3D mesh consists of the following information:
+
+* Total number of unique vertices.
+* For each unique vertex:
+  * X, Y, Z, U, V coordinates as floating point.
+* Number of vertex lists used to describe the projection.
+  * For each vertex list:
+    * Texture ID indicating which texture to sample from.
+    * Triangle render method/type (triangle/strip/fan).
+    * Number of vertex indices in this list.
+    * For each vertex
+      * index into the unique vertex list.
+
+A texture ID could refer to the current video frame or a static image. This
+allows portions of the spherical scene to be dynamic and other portions to be
+static.
+
+The multiple texture scheme helps cameras that do not capture the entire
+spherical field of view (360 degrees horizontal and 180 degrees vertical). Such
+cameras can replace the uncaptured portion of the spherical field of view with
+a static image.
+
+##### Syntax
+```
+aligned(8) class Mesh Box(‘mesh’) {
+    const unsigned int(1) reserved = 0;
+    unsigned int(31) coordinate_count;
+    for (i = 0; i < coordinate_count; i++) {
+      float(32) coordinate;
+    }
+    const unsigned int(1) reserved = 0;
+    unsigned int(31) vertex_count;
+    for (i = 0; i < vertex_count; i++) {
+      unsigned int(ccsb) x_index_delta;
+      unsigned int(ccsb) y_index_delta;
+      unsigned int(ccsb) z_index_delta;
+      unsigned int(ccsb) u_index_delta;
+      unsigned int(ccsb) v_index_delta;
+    }
+    const unsigned int(1) padding[];
+
+    const unsigned int(1) reserved = 0;
+    unsigned int(31) vertex_list_count;
+    for (i = 0; i < vertex_list_count; i++) {
+      unsigned int(8) texture_id;
+      unsigned int(8) index_type;
+      const unsigned int(1) reserved = 0;
+      unsigned int(31) index_count;
+      for (j = 0; j < index_count; j++) {
+        unsigned int(vcsb) index_as_delta;
+      }
+    }
+    const unsigned int(1) padding[];
+}
+```
+
+##### Semantics
+
+- `reserved` are fields where all bits are set to 0. A MeshProjection box
+    version change is required if any of these bits are allowed to be set to 1
+    in a future revision of the spec.
+- `coordinate_count` is the number of floating point values used in the
+    vertices.
+- `coordinate` is a floating point value used in mesh vertices.
+
+- `vertex_count` is the number of position (x,y,z) & texture coordinate (u,v)
+    pairings used in the projection mesh.
+- `ccsb` coordinate count size in bits = ceil(log2(coordinate_count * 2))
+- `x_index_delta` is a delta from the previous x_index into the
+    list of coordinates. For the first element, the previous index is assumed to
+    be zero. These integers are encoded in a zig-zag scheme, similar to
+    [Protocol Buffers's signed integers]
+    (https://developers.google.com/protocol-buffers/docs/encoding#signed-integers).
+    An integer `n` that is greater than or equal to 0 is encoded as `n * 2`. An
+    integer `n` that is less than 0 is encoded as `-n * 2 - 1`.
+- `y_index_delta` is a delta from the previous y_index and has the same encoding
+    and initial index as `x_index_delta`
+- `z_index_delta` is a delta from the previous z_index and has the same encoding
+    and initial index as `x_index_delta`
+- `u_index_delta` is a delta from the previous u_index and has the same encoding
+    and initial index as `x_index_delta`
+- `v_index_delta` is a delta from the previous v_index and has the same encoding
+    and initial index as `x_index_delta`
+
+- `padding` contains 0-7 bits to align to the next byte boundary.
+
+- `vertex_list_count` is the number of vertex index lists that describe the
+    projection mesh.
+- `texture_id` is the Texture ID the UV coordinates refer to.
+    *   0 for video frames in this track.
+    *   >0 reserved
+- `index_type` specifies what the indices refer to. The valid values are:
+    *   0: Triangles
+    *   1: Triangle Strip
+    *   2: Triangle Fan
+- `index_count` is the number of vertex indices in this vertex list.
+- `vcsb` vertex count size in bits = ceil(log2(vertex_count * 2))
+- `index_as_delta` is a delta from the previous index into the
+    list of unique vertices. For the first element, the previous index is
+    assumed to be 0. These integers are encoded in a zig-zag scheme, similar to
+    [Protocol Buffers's signed integers]
+    (https://developers.google.com/protocol-buffers/docs/encoding#signed-integers).
+    An integer `n` that is greater than or equal to 0 is encoded as `n * 2`. An
+    integer `n` that is less than 0 is encoded as `-n * 2 - 1`.
+
+##### Notes:
+
+* All fields are big-endian msbf.
+* Parsers should ignore boxes they don't know about.
+* Parsers should ignore extra bytes at the end of a box.
+* Boxes / fields may be added to the end of a box without incrementing the
+version number.
+* (x,y,z) coordinates are expressed in an OpenGL-style right-handed coordinate
+  system where -Z is forward, +X is right and +Y is up.
+* (u,v) coordinates are also expressed in an OpenGL-style texture coordinate
+system, where the lower-left corner is the origin (0,0), and the upper-right is
+(1,1).
+* (u,v) coordinates need to be adjusted based on the stereo layout of the
+stream.
+   * If the stereo layout is left-right:
+      * left u' = u * 0.5
+      * right u' = u * 0.5 + 0.5
+   * If the stereo layout is top-bottom:
+      * left v' = v * 0.5
+      * right v' = v * 0.5 + 0.5
+   * No adjustment is required for mono layout or when a Mesh box is provided
+     for each eye.
+
 
 ### Example
 
@@ -309,6 +489,7 @@ Describes the projection used for this video track.
 * 0: Rectangular
 * 1: Equirectangular
 * 2: Cubemap
+* 3: Mesh
 
 
 #### `ProjectionPrivate` element
@@ -333,6 +514,9 @@ ISOBMFF Equirectangular Projection Box ('equi').
  * If `ProjectionType` equals 2 (Cubemap), then this element must be present
 and contain the same binary data that would be stored inside an ISOBMFF
 Cubemap Projection Box ('cbmp').
+ * If `ProjectionType` equals 3 (Mesh), then this element must be present
+and contain the same binary data that would be stored inside an ISOBMFF
+Mesh Projection Box ('mshp').
 
 Note: ISOBMFF box size and fourcc fields are not included in the binary
 data, but the FullBox version and flag fields are. This is to avoid
