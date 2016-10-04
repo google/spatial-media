@@ -164,7 +164,7 @@ aligned(8) class ProjectionDataBox(unsigned int(32) proj_type, unsigned int(32) 
 Box Type: `cbmp`  
 Container: `proj`
 
-Specifies that the track uses a CubeMap projection and contains additional
+Specifies that the track uses a cubemap projection and contains additional
 projection dependent information. The
 [cubemap's](https://en.wikipedia.org/wiki/Cube_mapping) face layout is
 defined by a unique `layout` value.
@@ -295,8 +295,8 @@ A 3D mesh consists of the following information:
     * Texture ID indicating which texture to sample from.
     * Triangle render method/type (triangle/strip/fan).
     * Number of vertex indices in this list.
-    * For each vertex
-      * index into the unique vertex list.
+    * For each vertex:
+      * Index into the unique vertex list.
 
 A texture ID could refer to the current video frame or a static image. This
 allows portions of the spherical scene to be dynamic and other portions to be
@@ -350,9 +350,9 @@ aligned(8) class Mesh Box(‘mesh’) {
     vertices.
 - `coordinate` is a floating point value used in mesh vertices.
 
-- `vertex_count` is the number of position (x,y,z) & texture coordinate (u,v)
+- `vertex_count` is the number of position (x,y,z) and texture coordinate (u,v)
     pairings used in the projection mesh.
-- `ccsb` coordinate count size in bits = ceil(log2(coordinate_count * 2))
+- `ccsb` coordinate count size in bits = `ceil(log2(coordinate_count * 2))`
 - `x_index_delta` is a delta from the previous x_index into the
     list of coordinates. For the first element, the previous index is assumed to
     be zero. These integers are encoded in a zig-zag scheme, similar to
@@ -368,9 +368,7 @@ aligned(8) class Mesh Box(‘mesh’) {
     and initial index as `x_index_delta`
 - `v_index_delta` is a delta from the previous v_index and has the same encoding
     and initial index as `x_index_delta`
-
 - `padding` contains 0-7 bits to align to the next byte boundary.
-
 - `vertex_list_count` is the number of vertex index lists that describe the
     projection mesh.
 - `texture_id` is the Texture ID the UV coordinates refer to.
@@ -381,24 +379,21 @@ aligned(8) class Mesh Box(‘mesh’) {
     *   1: Triangle Strip
     *   2: Triangle Fan
 - `index_count` is the number of vertex indices in this vertex list.
-- `vcsb` vertex count size in bits = ceil(log2(vertex_count * 2))
+- `vcsb` vertex count size in bits = `ceil(log2(vertex_count * 2))`
 - `index_as_delta` is a delta from the previous index into the
-    list of unique vertices. For the first element, the previous index is
-    assumed to be 0. These integers are encoded in a zig-zag scheme, similar to
-    [Protocol Buffers's signed integers]
-    (https://developers.google.com/protocol-buffers/docs/encoding#signed-integers).
-    An integer `n` that is greater than or equal to 0 is encoded as `n * 2`. An
-    integer `n` that is less than 0 is encoded as `-n * 2 - 1`.
+    list of unique vertices. This field has the same encoding
+    and initial index as `x_index_delta`.
 
 ##### Notes:
 
-* All fields are big-endian msbf.
+* All fields are big-endian most-significant-bit first.
 * Parsers should ignore boxes they don't know about.
 * Parsers should ignore extra bytes at the end of a box.
 * Boxes / fields may be added to the end of a box without incrementing the
 version number.
 * (x,y,z) coordinates are expressed in an OpenGL-style right-handed coordinate
-  system where -Z is forward, +X is right and +Y is up.
+  system where -Z is forward, +X is right and +Y is up. Triangles must be specified
+  with counter-clockwise winding order.
 * (u,v) coordinates are also expressed in an OpenGL-style texture coordinate
 system, where the lower-left corner is the origin (0,0), and the upper-right is
 (1,1).
