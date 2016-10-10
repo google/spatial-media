@@ -336,8 +336,8 @@ aligned(8) class Mesh Box(‘mesh’) {
       for (j = 0; j < index_count; j++) {
         unsigned int(vcsb) index_as_delta;
       }
+      const unsigned int(1) padding[];
     }
-    const unsigned int(1) padding[];
 }
 ```
 
