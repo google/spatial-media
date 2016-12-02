@@ -134,11 +134,11 @@ aligned(8) class ProjectionHeader extends FullBox(‘prhd’, 0, 0) {
 
 - Pose values are 16.16 fixed point values measuring rotation in degrees. These
   rotations transform the the projection as follows:
-  - `pose_yaw_degrees` clockwise rotation in degrees around the up vector,
+  - `pose_yaw_degrees` counter-clockwise rotation in degrees around the up vector,
      restricted to -180.0 to 180.0
   - `pose_pitch_degrees` counter-clockwise rotation in degrees around the right
      vector post yaw transform, restricted to -90.0 to 90.0
-  - `pose_roll_degrees` counter clockwise-rotation in degrees around the forward
+  - `pose_roll_degrees` clockwise-rotation in degrees around the forward
      vector post yaw and pitch transform, restricted to -180.0 to 180.0
 
 #### Projection Data Box
@@ -532,7 +532,7 @@ Container: Projection master element
 Specifies a yaw rotation to the projection.
 
 ##### Semantics
-Value represents a clockwise rotation, in degrees, around the up vector.
+Value represents a counter-clockwise rotation, in degrees, around the up vector.
 This rotation must be applied before any `ProjectionPosePitch` or
 `ProjectionPoseRoll` rotations. The value of this field should be in the
  -180 to 180 degree range.
@@ -570,7 +570,7 @@ Container: Projection master element
 Specifies a roll rotation to the projection.
 
 ##### Semantics
-Value represents a counter-clockwise rotation, in degrees, around the forward
+Value represents a clockwise rotation, in degrees, around the forward
 vector. This rotation must be applied after the `ProjectionPoseYaw` and
 `ProjectionPosePitch` rotations. The value of this field should be in
 the -180 to 180 degree range.
