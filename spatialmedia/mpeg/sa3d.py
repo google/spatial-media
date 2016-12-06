@@ -47,11 +47,11 @@ def load(fh, position=None, end=None):
     name = fh.read(4)
 
     if (name != constants.TAG_SA3D):
-        print "Error: box is not an SA3D box."
+        print("Error: box is not an SA3D box.")
         return None
 
     if (position + size > end):
-        print "Error: SA3D box size exceeds bounds."
+        print("Error: SA3D box size exceeds bounds.")
         return None
 
     new_box.content_size = size - new_box.header_size

@@ -108,7 +108,7 @@ class Application(Frame):
 
         if audio_metadata:
             self.var_spatial_audio.set(1)
-            print audio_metadata.get_metadata_string()
+            print(audio_metadata.get_metadata_string())
 
         self.update_state()
 
