@@ -156,7 +156,7 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if str(in_fh.read(4)) == mpeg.constants.TRAK_TYPE_VIDE:
+                    if str(in_fh.read(4).decode("utf-8")) == mpeg.constants.TRAK_TYPE_VIDE:
                         added = True
                         break
 
@@ -190,7 +190,7 @@ def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if str(in_fh.read(4)) == mpeg.constants.TAG_SOUN:
+                    if str(in_fh.read(4).decode("utf-8")) == mpeg.constants.TAG_SOUN:
                         return inject_spatial_audio_atom(
                             in_fh, sub_element, audio_metadata, console)
     return True
@@ -312,7 +312,7 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                             contents = sub_element.contents[16:]
                         else:
                             contents = fh.read(sub_element.content_size - 16)
-                        contentsStr = str(contents)
+                        contentsStr = str(contents.decode("utf-8"))
                         metadata.video[trackName] = \
                             parse_spherical_xml(contentsStr, console)
 
@@ -632,6 +632,6 @@ def get_num_audio_tracks(mpeg4_file, in_fh):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if (str(in_fh.read(4)) == mpeg.constants.TAG_SOUN):
+                    if (str(in_fh.read(4).decode("utf-8")) == mpeg.constants.TAG_SOUN):
                         num_audio_tracks += 1
     return num_audio_tracks

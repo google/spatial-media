@@ -35,7 +35,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = str(fh.read(4))
+    name = str(fh.read(4).decode("utf-8"))
     if(size+position>end):
         print("Buffer overrun!")
     is_box = name not in constants.CONTAINERS_LIST

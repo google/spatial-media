@@ -42,7 +42,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = str(fh.read(4))
+    name = str(fh.read(4).decode("utf-8"))
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
