@@ -190,7 +190,7 @@ def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if str(in_fh.read(4),"utf-8") == mpeg.constants.TAG_SOUN:
+                    if str(in_fh.read(4)) == mpeg.constants.TAG_SOUN:
                         return inject_spatial_audio_atom(
                             in_fh, sub_element, audio_metadata, console)
     return True
@@ -632,6 +632,6 @@ def get_num_audio_tracks(mpeg4_file, in_fh):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if (str(in_fh.read(4),"utf-8") == mpeg.constants.TAG_SOUN):
+                    if (str(in_fh.read(4)) == mpeg.constants.TAG_SOUN):
                         num_audio_tracks += 1
     return num_audio_tracks
