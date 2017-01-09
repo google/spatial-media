@@ -503,9 +503,12 @@ Private data that only applies to a specific projection.
 ##### Semantics
  * If `ProjectionType` equals 0 (Rectangular), then this element must not be
 present.
- * If `ProjectionType` equals 1 (Equirectangular), then this element must be
- present and contain the same binary data that would be stored inside an
-ISOBMFF Equirectangular Projection Box ('equi').
+ * If `ProjectionType` equals 1 (Equirectangular), then this element may be
+present. If the element is present, then it must contain the same binary data 
+that would be stored inside an ISOBMFF Equirectangular Projection Box
+('equi'). If the element is not present, then the content must be treated as
+if an element containing 20 zero bytes was present (i.e. a version 0 'equi'
+box with no flags set and all projection_bounds fields set to 0).
  * If `ProjectionType` equals 2 (Cubemap), then this element must be present
 and contain the same binary data that would be stored inside an ISOBMFF
 Cubemap Projection Box ('cbmp').
@@ -522,7 +525,7 @@ between the two container formats.
 ##### Definition
 ID: 0x7673  
 Level: 5  
-Mandatory: Yes  
+Mandatory: No  
 Type: float   
 Default: 0.0  
 Minver: 4  
@@ -541,7 +544,7 @@ This rotation must be applied before any `ProjectionPosePitch` or
 ##### Definition
 ID: 0x7674  
 Level: 5  
-Mandatory: Yes  
+Mandatory: No  
 Type: float   
 Default: 0.0  
 Minver: 4  
@@ -560,7 +563,7 @@ should be in the -90 to 90 degree range.
 ##### Definition
 ID: 0x7675  
 Level: 5  
-Mandatory: Yes  
+Mandatory: No  
 Type: float   
 Default: 0.0  
 Minver: 4  
