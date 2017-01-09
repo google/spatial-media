@@ -154,7 +154,7 @@ ProjectionDataBox in a given `proj` box.
 
 ##### Syntax
 ```
-aligned(8) class ProjectionDataBox(unsigned int(32) proj_type, unsigned int(32) version, unsigned int(32) flags)
+aligned(8) class ProjectionDataBox(unsigned int(32) proj_type, unsigned int(8)version, unsigned int(24) flags)
     extends FullBox(proj_type, version, flags) {
 }
 ```
