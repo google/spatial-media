@@ -91,8 +91,8 @@ aligned(8) class SphericalVideoHeader extends FullBox(‘svhd’, 0, 0) {
 
 ##### Semantics
 
-- `metadata_source` is a string identifier for the source tool of the SV3D
-metadata.
+- `metadata_source` is a null-terminated string in UTF-8 characters which
+identifies the tool used to create the SV3D metadata.
 
 #### Projection Box (proj)
 ##### Definition
