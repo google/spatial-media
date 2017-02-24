@@ -32,6 +32,7 @@ TAG_VIDE = "vide"
 TAG_SOUN = "soun"
 TAG_SA3D = "SA3D"
 TAG_ST3D = "st3d"
+TAG_SV3D = "sv3d"
 
 # Container types.
 TAG_MOOV = "moov"

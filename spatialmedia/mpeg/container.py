@@ -27,6 +27,7 @@ from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 from spatialmedia.mpeg import sa3d
 from spatialmedia.mpeg import st3d
+from spatialmedia.mpeg import sv3d
 
 def load(fh, position, end):
     if position is None:
@@ -50,6 +51,8 @@ def load(fh, position, end):
             return sa3d.load(fh, position, end)
         elif name == constants.TAG_ST3D:
             return st3d.load(fh, position, end)
+        elif name == constants.TAG_SV3D:
+            return sv3d.load(fh, position, end)
         return box.load(fh, position, end)
 
     if size == 1:
