@@ -48,15 +48,17 @@ def main():
       help=
       "injects spatial media metadata into the first file specified (.mp4 or "
       ".mov) and saves the result to the second file specified")
+
   video_group = parser.add_argument_group("Spherical Video")
-  video_group.add_argument("-s",
-                           "--stereo",
-                           action="store",
-                           dest="stereo_mode",
-                           metavar="STEREO-MODE",
-                           choices=["none", "top-bottom", "left-right"],
-                           default="none",
-                           help="stereo mode (none | top-bottom | left-right)")
+  video_group.add_argument(
+      "-s",
+      "--stereo",
+      action="store",
+      dest="stereo_mode",
+      metavar="STEREO-MODE",
+      choices=["none", "top-bottom", "left-right"],
+      default="none",
+      help="stereo mode (none | top-bottom | left-right)")
   video_group.add_argument(
       "-c",
       "--crop",
@@ -67,6 +69,7 @@ def main():
       " where w=CroppedAreaImageWidthPixels h=CroppedAreaImageHeightPixels "
       "f_w=FullPanoWidthPixels f_h=FullPanoHeightPixels "
       "x=CroppedAreaLeftPixels y=CroppedAreaTopPixels")
+
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
       "-a",
