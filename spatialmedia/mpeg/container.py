@@ -26,6 +26,7 @@ import struct
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 from spatialmedia.mpeg import sa3d
+from spatialmedia.mpeg import st3d
 
 def load(fh, position, end):
     if position is None:
@@ -44,8 +45,11 @@ def load(fh, position, end):
     if name == constants.TAG_MP4A and size == 12:
         is_box = True 
     if is_box:
+        # this is only for printing contents while parsing
         if name == constants.TAG_SA3D:
             return sa3d.load(fh, position, end)
+        elif name == constants.TAG_ST3D:
+            return st3d.load(fh, position, end)
         return box.load(fh, position, end)
 
     if size == 1:

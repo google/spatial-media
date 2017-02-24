@@ -28,8 +28,10 @@ TAG_XML = "xml "
 TAG_HDLR = "hdlr"
 TAG_FTYP = "ftyp"
 TAG_ESDS = "esds"
+TAG_VIDE = "vide"
 TAG_SOUN = "soun"
 TAG_SA3D = "SA3D"
+TAG_ST3D = "st3d"
 
 # Container types.
 TAG_MOOV = "moov"

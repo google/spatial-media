@@ -57,7 +57,7 @@ def main():
       dest="stereo_mode",
       metavar="STEREO-MODE",
       choices=["none", "top-bottom", "left-right"],
-      default="none",
+      default=None,
       help="stereo mode (none | top-bottom | left-right)")
   video_group.add_argument(
       "-c",
@@ -90,6 +90,10 @@ def main():
     metadata = metadata_utils.Metadata()
     metadata.video = metadata_utils.generate_spherical_xml(args.stereo_mode,
                                                            args.crop)
+
+
+    if args.stereo_mode:
+      metadata.stereo = args.stereo_mode
 
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA

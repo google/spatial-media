@@ -96,6 +96,7 @@ SPATIAL_AUDIO_DEFAULT_METADATA = {
 
 class Metadata(object):
     def __init__(self):
+        self.stereo = None
         self.video = None
         self.audio = None
 
@@ -166,6 +167,50 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
 
     mpeg4_file.resize()
     return True
+
+def mpeg4_add_stereo(mpeg4_file, in_fh, stereo_metadata, console):
+    """Adds stereo-mode metadata to the first video track of the input
+       mpeg4_file. Returns False on failure.
+
+    Args:
+      mpeg4_file: mpeg4, Mpeg4 file structure to add metadata.
+      in_fh: file handle, Source for uncached file contents.
+      stereo_metadata: string.
+    """
+    for element in mpeg4_file.moov_box.contents:
+        if element.name == mpeg.constants.TAG_TRAK:
+            for sub_element in element.contents:
+                if sub_element.name != mpeg.constants.TAG_MDIA:
+                    continue
+                for mdia_sub_element in sub_element.contents:
+                    if mdia_sub_element.name != mpeg.constants.TAG_HDLR:
+                        continue
+                    position = mdia_sub_element.content_start() + 8
+                    in_fh.seek(position)
+                    if in_fh.read(4) == mpeg.constants.TAG_VIDE:
+                        return inject_stereo_mode_atom(in_fh, sub_element, stereo_metadata, console)
+    return False
+
+def inject_stereo_mode_atom(in_fh, video_media_atom, stereo_metadata, console):
+    for atom in video_media_atom.contents:
+        if atom.name != mpeg.constants.TAG_MINF:
+            continue
+        for element in atom.contents:
+            if element.name != mpeg.constants.TAG_STBL:
+                continue
+            for sub_element in element.contents:
+                if sub_element.name != mpeg.constants.TAG_STSD:
+                    continue
+                for sample_description in sub_element.contents:
+                    if sample_description.name in\
+                            mpeg.constants.VIDEO_SAMPLE_DESCRIPTIONS:
+                        in_fh.seek(sample_description.position +
+                                   sample_description.header_size + 16)
+
+                        st3d_atom = mpeg.st3dBox.create(stereo_metadata)
+                        sample_description.contents.append(st3d_atom)
+                        return True
+    return False
 
 def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
     """Adds spatial audio metadata to the first audio track of the input
@@ -313,7 +358,9 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                         metadata.video[trackName] = \
                             parse_spherical_xml(contents, console)
 
-            if sub_element.name == mpeg.constants.TAG_MDIA:
+            for sub_element in element.contents:
+                if sub_element.name != mpeg.constants.TAG_MDIA:
+                    continue
                 for mdia_sub_element in sub_element.contents:
                     if mdia_sub_element.name != mpeg.constants.TAG_MINF:
                         continue
@@ -323,16 +370,21 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                         for stsd_elem in stbl_elem.contents:
                             if stsd_elem.name != mpeg.constants.TAG_STSD:
                                 continue
-                            for sa3d_container_elem in stsd_elem.contents:
-                                if sa3d_container_elem.name not in \
+                            for container_elem in stsd_elem.contents:
+                                if container_elem.name in \
                                         mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
-                                    continue
-                                metadata.num_audio_channels = \
-                                    get_num_audio_channels(stsd_elem, fh)
-                                for sa3d_elem in sa3d_container_elem.contents:
-                                    if sa3d_elem.name == mpeg.constants.TAG_SA3D:
-                                        sa3d_elem.print_box(console)
-                                        metadata.audio = sa3d_elem
+                                    metadata.num_audio_channels = \
+                                        get_num_audio_channels(stsd_elem, fh)
+                                    for sa3d_elem in container_elem.contents:
+                                        if sa3d_elem.name == mpeg.constants.TAG_SA3D:
+                                            sa3d_elem.print_box(console)
+                                            metadata.audio = sa3d_elem
+                                elif container_elem.name in \
+                                        mpeg.constants.VIDEO_SAMPLE_DESCRIPTIONS:
+                                    for stsd_subelem in container_elem.contents:
+                                        if stsd_subelem.name == mpeg.constants.TAG_ST3D:
+                                            stsd_subelem.print_box(console)
+                                            metadata.video[trackName] = stsd_subelem
     return metadata
 
 def parse_mpeg4(input_file, console):
@@ -358,6 +410,11 @@ def inject_mpeg4(input_file, output_file, metadata, console):
 
         if not mpeg4_add_spherical(mpeg4_file, in_fh, metadata.video):
             console("Error failed to insert spherical data")
+
+        if metadata.stereo:
+            if not mpeg4_add_stereo(
+                mpeg4_file, in_fh, metadata.stereo, console):
+                    console("Error failed to insert stereoscopic data")
 
         if metadata.audio:
             if not mpeg4_add_audio_metadata(

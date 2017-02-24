@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import spatialmedia.mpeg.sa3d
+import spatialmedia.mpeg.st3d
 import spatialmedia.mpeg.box
 import spatialmedia.mpeg.constants
 import spatialmedia.mpeg.container
@@ -25,7 +26,8 @@ load = mpeg4_container.load
 
 Box = box.Box
 SA3DBox = sa3d.SA3DBox
+st3dBox = st3d.st3dBox
 Container = container.Container
 Mpeg4Container = mpeg4_container.Mpeg4Container
 
-__all__ = ["box", "mpeg4", "container", "constants", "sa3d"]
+__all__ = ["box", "mpeg4", "container", "constants", "sa3d", "st3d"]
