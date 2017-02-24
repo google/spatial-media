@@ -36,7 +36,10 @@ def load(fh, position, end):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
 
-    is_box = name not in constants.CONTAINERS_LIST
+    is_box = False
+    if (name not in constants.AUDIO_CONTAINERS_LIST) and \
+       (name not in constants.VIDEO_CONTAINERS_LIST):
+       is_box = True
     # Handle the mp4a decompressor setting (wave -> mp4a).
     if name == constants.TAG_MP4A and size == 12:
         is_box = True 
@@ -72,6 +75,17 @@ def load(fh, position, end):
             padding = 28 + 16
         elif sample_description_version == 2:
             padding = 64
+        else:
+            print("Unsupported sample description version:",
+                  sample_description_version)
+    if name in constants.VIDEO_SAMPLE_DESCRIPTIONS:
+        current_pos = fh.tell()
+        fh.seek(current_pos + 8)
+        sample_description_version = struct.unpack(">h", fh.read(2))[0]
+        fh.seek(current_pos)
+
+        if sample_description_version == 0:
+            padding = 78
         else:
             print("Unsupported sample description version:",
                   sample_description_version)
