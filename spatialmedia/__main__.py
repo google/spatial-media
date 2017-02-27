@@ -68,16 +68,6 @@ def main():
       choices=["equirectangular", "cubemap"],
       default=None,
       help="projection (equirectangular | cubemap)")
-  video_group.add_argument(
-      "-c",
-      "--crop",
-      action="store",
-      default=None,
-      help=
-      "crop region. Must specify 6 integers in the form of \"w:h:f_w:f_h:x:y\""
-      " where w=CroppedAreaImageWidthPixels h=CroppedAreaImageHeightPixels "
-      "f_w=FullPanoWidthPixels f_h=FullPanoHeightPixels "
-      "x=CroppedAreaLeftPixels y=CroppedAreaTopPixels")
 
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
@@ -97,9 +87,6 @@ def main():
       return
 
     metadata = metadata_utils.Metadata()
-    metadata.video = metadata_utils.generate_spherical_xml(args.stereo_mode,
-                                                           args.crop)
-
 
     if args.stereo_mode:
       metadata.stereo = args.stereo_mode
@@ -110,7 +97,7 @@ def main():
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
 
-    if metadata.video:
+    if metadata.stereo or metadata.spherical or metadata.audio:
       metadata_utils.inject_metadata(args.file[0], args.file[1], metadata,
                                      console)
     else:
