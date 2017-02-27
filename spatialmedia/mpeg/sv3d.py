@@ -81,6 +81,9 @@ class sv3dBox(box.Box):
         self.proj_size = 0
         self.content_size = 0
         self.projection = ""
+        self.yaw = 0
+        self.pitch = 0
+        self.roll = 0
 
     @staticmethod
     def create(metadata):
@@ -94,6 +97,9 @@ class sv3dBox(box.Box):
         elif new_box.projection == "cubemap":
             new_box.content_size = 73 - new_box.header_size
             new_box.proj_size = 52
+        new_box.yaw = float(metadata.orientation["yaw"])
+        new_box.pitch = float(metadata.orientation["pitch"])
+        new_box.roll = float(metadata.orientation["roll"])
 
         return new_box
 
@@ -102,10 +108,11 @@ class sv3dBox(box.Box):
             console.
         """
         console("\t\tSpherical Mode: %s" % self.projection)
+        console("\t\t    [Yaw: %.02f, Pitch: %.02f, Roll: %.02f]" % (self.yaw, self.pitch, self.roll))
 
     def get_metadata_string(self):
         """ Outputs a concise single line audio metadata string. """
-        return "Spherical mode: %s" % (self.projection)
+        return "Spherical mode: %s (%f,%f,%f)" % (self.projection, self.yaw, self.pitch, self.roll)
 
     def save(self, in_fh, out_fh, delta):
         if (self.header_size == 16):
@@ -130,9 +137,9 @@ class sv3dBox(box.Box):
         out_fh.write(struct.pack(">I", 24))     # size
         out_fh.write("prhd")                    # tag
         out_fh.write(struct.pack(">I", 0))      # version+flags
-        out_fh.write(struct.pack(">I", 0))      # yaw
-        out_fh.write(struct.pack(">I", 0))      # pitch
-        out_fh.write(struct.pack(">I", 0))      # roll
+        out_fh.write(struct.pack(">I", self.yaw * 65536))   # yaw
+        out_fh.write(struct.pack(">I", self.pitch * 65536)) # pitch
+        out_fh.write(struct.pack(">I", self.roll * 65536))  # roll
 
         #cmbp or equi
         if self.projection == "equirectangular":

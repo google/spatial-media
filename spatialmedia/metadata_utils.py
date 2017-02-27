@@ -39,6 +39,7 @@ class Metadata(object):
     def __init__(self):
         self.stereo = None
         self.spherical = None
+        self.orientation = None
         self.video = None
         self.audio = None
 

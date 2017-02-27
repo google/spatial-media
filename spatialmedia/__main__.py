@@ -68,6 +68,30 @@ def main():
       choices=["equirectangular", "cubemap"],
       default=None,
       help="projection (equirectangular | cubemap)")
+  video_group.add_argument(
+      "-y",
+      "--yaw",
+      action="store",
+      dest="yaw",
+      metavar="YAW",
+      default=0,
+      help="yaw")
+  video_group.add_argument(
+      "-p",
+      "--pitch",
+      action="store",
+      dest="pitch",
+      metavar="PITCH",
+      default=0,
+      help="pitch")
+  video_group.add_argument(
+      "-r",
+      "--roll",
+      action="store",
+      dest="roll",
+      metavar="ROLL",
+      default=0,
+      help="roll")
 
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
@@ -98,6 +122,7 @@ def main():
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
 
     if metadata.stereo or metadata.spherical or metadata.audio:
+      metadata.orientation = {"yaw": args.yaw, "pitch": args.pitch, "roll": args.roll}
       metadata_utils.inject_metadata(args.file[0], args.file[1], metadata,
                                      console)
     else:
