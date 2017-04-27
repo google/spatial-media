@@ -2,33 +2,33 @@
 Google VR Audio enables Ambisonic spatial audio playback in [Google VR SDK](https://developers.google.com/vr/), [YouTube 360/VR](http://yt.be/spatialaudiovrhelp), [Jump Inspector](https://support.google.com/jump/answer/6399746) and [Omnitone](https://googlechrome.github.io/omnitone/#home). It provides ambisonic binaural decoding via Head Related Transfer Functions (HRTFs). This repository contains information and resources that can be used in order to build binaural preview software or to directly monitor the binaural output when creating content in Digital Audio Workstations (DAWs).
 
 # Contents of the directories
-## /raw symmetric cube hrirs 
+## raw symmetric cube hrirs 
 This is a set of binaural measurements (Head Related Impulse Responses or HRIRs) taken from a cube loudspeaker configuration. This configuration is used in the Google VR Audio first-order ambisonic binaural decoder.
 
 This set has been derived from the [SADIE binaural measurements](https://www.york.ac.uk/sadie-project/binaural.html) and  is provided as individual time-domain FIR filters.
 
 ### Specification & modifications:
-subject: 002 (KU100 binaural head)
-sampling rate: 48kHz
-bit depth: 16 bit
-length: 256 samples
-fade-in: none
-fade-out: half-hann (16 samples)
-symmetric: yes (left hemisphere only)
+subject: 002 (KU100 binaural head)  
+sampling rate: 48kHz  
+bit depth: 16 bit  
+length: 256 samples  
+fade-in: none  
+fade-out: half-hann (16 samples)  
+symmetric: yes (left hemisphere only)  
 applied gain: 0dB (none)
 
 Also provided is a preset configuration file for the [ambiX](https://github.com/kronihias/ambix) binaural decoder plugin.
 
 **Note**: Using these filters directly (or via the [ambiX](https://github.com/kronihias/ambix) preset) with your ambisonic mix will **not** result in an output equivalent to Google VR Audio unless you use phase-matched shelf-filters, as recommended by A. J. Heller, R. Lee and  E. M. Benjamin in their paper "[Is My Decoder Ambisonic?](http://www.ai.sri.com/ajh/ambisonics/BLaH3.pdf)". To solve that problem, we also provide a set called *symmetric ambisonic binaural decoder* which contains shelf-filtered, symmetric spherical harmonic HRIRs which can be directly applied to an ambisonic mix via a simple filter operation (please see below).
 
-## /symmetric ambisonic binaural decoder
+## symmetric ambisonic binaural decoder
 This set represents spherical harmonic HRIR filters used for first-order ambisonic binaural decode in Google VR Audio. To produce the binaural output, these filters should be applied to an ambisonic mix directly and the output routed to the stereo L & R channels as shown in the following diagram:
 
 ![symmetric binaural ambisonic decoder - signal flow diagram](https://cloud.githubusercontent.com/assets/26985965/24811254/2143fb12-1b7a-11e7-99a0-cef55c3f8365.png)
 
 The filtering operation (* symbol) can be done using freely available tools, for example, free multichannel convolver plugins like  [LAConvolver](http://audio.lernvall.com/) (mac) or  [Freeverb3](http://www.nongnu.org/freeverb3/) (win). The dotted red line with the Ø symbol denotes 180° phase inversion.
 
-## /ambisonic correction filters
+## ambisonic correction filters
 This is a set of filters which compensate for the change of HRTFs in the binaural ambisonic decoder. If the ambisonic audio has been mixed against our previous THRIVE HRTFs, applying these filters to the ambiX tracks will minimize the timbral changes after the switch to SADIE KU100 HRTFs. For example, the below diagram shows a frequency response of a decoded sound fields containing a single, broadband sound source in front of the listener. If no compensation is used, switching the binaural decoder from THRIVE to SADIE KU100 will result in spectral changes:
 
 ![decoder output before correction](https://cloud.githubusercontent.com/assets/26985965/24811252/21399d66-1b7a-11e7-953c-2357d6be8f3a.png)
@@ -58,12 +58,12 @@ HRTFs add specific coloration to the decoded binaural output signal. However, th
 ![HRTF coloration](https://cloud.githubusercontent.com/assets/26985965/24811251/2139476c-1b7a-11e7-865b-f37ac10b197f.png)
 
 ### Can I adjust my existing ambisonic mix to make it sound the same with the new binaural decoder? 
-If you already have produced an ambisonic soundtrack using our THRIVE HRTF set for monitoring, you can simply correct the frequency response of your ambiX tracks to match the frequency response of the new SADIE KU100 HRTF set. This can be done by applying the filters we share in the [/ambisonic correction filters](#ambisoniccorrectionfilters) directory.
+If you already have produced an ambisonic soundtrack using our THRIVE HRTF set for monitoring, you can simply correct the frequency response of your ambiX tracks to match the frequency response of the new SADIE KU100 HRTF set. This can be done by applying the filters we share in the [ambisonic correction filters](#ambisonic-correction-filters) directory.
 
 ### What is expected loudness of the Google VR Audio binaural decoder?
 Due to HRTF processing, the output amplitude of your Ambisonic track may differ depending which HRTF set you use. That is why it is important to monitor the binaural output when working on an ambisonic soundtrack using the binaural decoder which is going to be used to render your ambisonic content. Our binaural decoder's loudness should be the same as the loudness of a standard M-S stereo decoder.
 
-For example, the table below shows expected loudness (according to the [EBU R128 standard](https://tech.ebu.ch/docs/r/r128.pdf)) and absolute amplitude peak values when a 0.5 normalized pink noise bursts signal is played at 8 different spatial locations around the listener.
+For example, the table below shows loudness measured in compliance with the [ITU-R BS.1770-4 recommendation](https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1770-4-201510-I!!PDF-E.pdf) and absolute amplitude peak values when a 0.5 normalized pink noise bursts signal is played at 8 different spatial locations around the listener:
 
 |Decoder     | Loudness [dB LUFS] | Absolute Peak Amplitude |
 |------------|--------------------|-------------------------|
