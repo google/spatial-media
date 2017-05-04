@@ -28,8 +28,11 @@ TAG_XML = "xml "
 TAG_HDLR = "hdlr"
 TAG_FTYP = "ftyp"
 TAG_ESDS = "esds"
+TAG_VIDE = "vide"
 TAG_SOUN = "soun"
 TAG_SA3D = "SA3D"
+TAG_ST3D = "st3d"
+TAG_SV3D = "sv3d"
 
 # Container types.
 TAG_MOOV = "moov"
@@ -43,9 +46,15 @@ TAG_STSD = "stsd"
 TAG_UUID = "uuid"
 TAG_WAVE = "wave"
 
-# Sound sample descriptions.
 TAG_NONE = "NONE"
 TAG_RAW_ = "raw "
+
+# Video sample descriptions.
+TAG_AVC1 = "avc1"
+TAG_HVC1 = "hvc1"
+TAG_HEV1 = "hev1"
+
+# Sound sample descriptions.
 TAG_TWOS = "twos"
 TAG_SOWT = "sowt"
 TAG_FL32 = "fl32"
@@ -56,6 +65,14 @@ TAG_ULAW = "ulaw"
 TAG_ALAW = "alaw"
 TAG_LPCM = "lpcm"
 TAG_MP4A = "mp4a"
+
+VIDEO_SAMPLE_DESCRIPTIONS = frozenset([
+    TAG_NONE,
+    TAG_RAW_,
+    TAG_AVC1,
+    TAG_HVC1,
+    TAG_HEV1,
+    ])
 
 SOUND_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_NONE,
@@ -72,7 +89,7 @@ SOUND_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_MP4A,
     ])
 
-CONTAINERS_LIST = frozenset([
+AUDIO_CONTAINERS_LIST = frozenset([
     TAG_MDIA,
     TAG_MINF,
     TAG_MOOV,
@@ -83,3 +100,12 @@ CONTAINERS_LIST = frozenset([
     TAG_WAVE,
     ]).union(SOUND_SAMPLE_DESCRIPTIONS)
 
+VIDEO_CONTAINERS_LIST = frozenset([
+    TAG_MDIA,
+    TAG_MINF,
+    TAG_MOOV,
+    TAG_STBL,
+    TAG_STSD,
+    TAG_TRAK,
+    TAG_UDTA,
+    ]).union(VIDEO_SAMPLE_DESCRIPTIONS)

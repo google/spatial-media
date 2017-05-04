@@ -26,6 +26,8 @@ import struct
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 from spatialmedia.mpeg import sa3d
+from spatialmedia.mpeg import st3d
+from spatialmedia.mpeg import sv3d
 
 def load(fh, position, end):
     if position is None:
@@ -36,13 +38,21 @@ def load(fh, position, end):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
 
-    is_box = name not in constants.CONTAINERS_LIST
+    is_box = False
+    if (name not in constants.AUDIO_CONTAINERS_LIST) and \
+       (name not in constants.VIDEO_CONTAINERS_LIST):
+       is_box = True
     # Handle the mp4a decompressor setting (wave -> mp4a).
     if name == constants.TAG_MP4A and size == 12:
         is_box = True 
     if is_box:
+        # this is only for printing contents while parsing
         if name == constants.TAG_SA3D:
             return sa3d.load(fh, position, end)
+        elif name == constants.TAG_ST3D:
+            return st3d.load(fh, position, end)
+        elif name == constants.TAG_SV3D:
+            return sv3d.load(fh, position, end)
         return box.load(fh, position, end)
 
     if size == 1:
@@ -72,6 +82,17 @@ def load(fh, position, end):
             padding = 28 + 16
         elif sample_description_version == 2:
             padding = 64
+        else:
+            print("Unsupported sample description version:",
+                  sample_description_version)
+    if name in constants.VIDEO_SAMPLE_DESCRIPTIONS:
+        current_pos = fh.tell()
+        fh.seek(current_pos + 8)
+        sample_description_version = struct.unpack(">h", fh.read(2))[0]
+        fh.seek(current_pos)
+
+        if sample_description_version == 0:
+            padding = 78
         else:
             print("Unsupported sample description version:",
                   sample_description_version)

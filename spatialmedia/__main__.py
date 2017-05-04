@@ -48,25 +48,51 @@ def main():
       help=
       "injects spatial media metadata into the first file specified (.mp4 or "
       ".mov) and saves the result to the second file specified")
+
   video_group = parser.add_argument_group("Spherical Video")
-  video_group.add_argument("-s",
-                           "--stereo",
-                           action="store",
-                           dest="stereo_mode",
-                           metavar="STEREO-MODE",
-                           choices=["none", "top-bottom", "left-right"],
-                           default="none",
-                           help="stereo mode (none | top-bottom | left-right)")
   video_group.add_argument(
-      "-c",
-      "--crop",
+      "-s",
+      "--stereo",
       action="store",
+      dest="stereo_mode",
+      metavar="STEREO-MODE",
+      choices=["none", "top-bottom", "left-right"],
       default=None,
-      help=
-      "crop region. Must specify 6 integers in the form of \"w:h:f_w:f_h:x:y\""
-      " where w=CroppedAreaImageWidthPixels h=CroppedAreaImageHeightPixels "
-      "f_w=FullPanoWidthPixels f_h=FullPanoHeightPixels "
-      "x=CroppedAreaLeftPixels y=CroppedAreaTopPixels")
+      help="stereo mode (none | top-bottom | left-right)")
+  video_group.add_argument(
+      "-m",
+      "--projection",
+      action="store",
+      dest="projection",
+      metavar="SPHERICAL-MODE",
+      choices=["equirectangular", "cubemap"],
+      default=None,
+      help="projection (equirectangular | cubemap)")
+  video_group.add_argument(
+      "-y",
+      "--yaw",
+      action="store",
+      dest="yaw",
+      metavar="YAW",
+      default=0,
+      help="yaw")
+  video_group.add_argument(
+      "-p",
+      "--pitch",
+      action="store",
+      dest="pitch",
+      metavar="PITCH",
+      default=0,
+      help="pitch")
+  video_group.add_argument(
+      "-r",
+      "--roll",
+      action="store",
+      dest="roll",
+      metavar="ROLL",
+      default=0,
+      help="roll")
+
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
       "-a",
@@ -85,13 +111,18 @@ def main():
       return
 
     metadata = metadata_utils.Metadata()
-    metadata.video = metadata_utils.generate_spherical_xml(args.stereo_mode,
-                                                           args.crop)
+
+    if args.stereo_mode:
+      metadata.stereo = args.stereo_mode
+
+    if args.projection:
+      metadata.spherical = args.projection
 
     if args.spatial_audio:
       metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA
 
-    if metadata.video:
+    if metadata.stereo or metadata.spherical or metadata.audio:
+      metadata.orientation = {"yaw": args.yaw, "pitch": args.pitch, "roll": args.roll}
       metadata_utils.inject_metadata(args.file[0], args.file[1], metadata,
                                      console)
     else:
