@@ -52,7 +52,7 @@ aligned(8) class Stereoscopic3D extends FullBox(‘st3d’, 0, 0) {
 |   `0`   | **Monoscopic**: Indicates the video frame contains a single monoscopic view. |
 |   `1`   | **Stereoscopic Top-Bottom**: Indicates the video frame contains a stereoscopic view storing the left eye on top half of the frame and right eye at the bottom half of the frame.|
 |   `2`   | **Stereoscopic Left-Right**: Indicates the video frame contains a stereoscopic view storing the left eye on left half of the frame and right eye on the right half of the frame.|
-|   `3`   | **Stereoscopic Stereo-Mesh**: Indicates the video frame contains a stereoscopic view where the frame layout for left and right eyes are encoded in the (u,v) coordinates of two meshes. This may only be used with a mesh projection that contains a mesh for each eye. |
+|   `3`   | **Stereoscopic Stereo-Custom**: Indicates the video frame contains a stereoscopic view storing left and right eyes in the frame, but its layout is application dependent, and needs to be determined elsewhere. For example, this must be used with a mesh projection that contains a mesh for each eye. In this case the layout information is stored in the meshes instead of explicitly described here.|
 
 #### Spherical Video Box (sv3d)
 ##### Definition
@@ -406,9 +406,9 @@ stereo mode of the stream before rendering.
       * left u' = u * 0.5
       * right u' = u * 0.5 + 0.5
    * If the stereo mode is top-bottom:
-      * left v' = v * 0.5
-      * right v' = v * 0.5 + 0.5
-   * If the stereo mode is stereo-mesh:
+      * left v' = v * 0.5 + 0.5
+      * right v' = v * 0.5
+   * If the stereo mode is stereo-custom:
       * Two mesh boxes must be present in the mshp box.
       * Unmodified (u,v) coordinates from the first mesh box are used for
 rendering the left eye, and unmodified (u,v) coordinates from the second mesh
@@ -460,7 +460,7 @@ information, with V2 taking priority when they differ.
 Stereo mode is specified using the existing `StereoMode` element specified in
 the Matroska spec. Only `StereoMode` values that have the same meaning as the
 ones specified in the `st3d` box are allowed at this time. (e.g. 0 - mono,
-1- left-right, 3 - top-bottom, 15 (provisional) - stereo-mesh).
+1- left-right, 3 - top-bottom, 15 (provisional) - stereo-custom).
 
 #### `Projection` master element
 ##### Definition
