@@ -20,7 +20,8 @@
 Tool for loading mpeg4 files and manipulating atoms.
 """
 
-import StringIO
+from io import StringIO
+import io
 import struct
 
 from spatialmedia.mpeg import constants
@@ -41,18 +42,18 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
+    name = str(fh.read(4).decode("utf-8"))
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
         header_size = 16
 
     if size < 8:
-        print "Error, invalid size", size, "in", name, "at", position
+        print("Error, invalid size", size, "in", name, "at", position)
         return None
 
     if (position + size) > end:
-        print ("Error: Leaf box size exceeds bounds.")
+        print("Error: Leaf box size exceeds bounds.")
         return None
 
     new_box = Box()
@@ -88,14 +89,15 @@ class Box(object):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name)
+            out_fh.write(str.encode(self.name))
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(str.encode(self.name))
 
-        if self.content_start():
-            in_fh.seek(self.content_start())
+        content_start = self.content_start()
+        if content_start:
+            in_fh.seek(content_start)
 
         if self.name == constants.TAG_STCO:
             stco_copy(in_fh, out_fh, self, delta)
@@ -123,7 +125,7 @@ class Box(object):
         """Prints the box structure."""
         size1 = self.header_size
         size2 = self.content_size
-        print "{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2)
+        print ("{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2))
 
 
 def tag_copy(in_fh, out_fh, size):
@@ -174,7 +176,7 @@ def index_copy(in_fh, out_fh, box, mode, mode_length, delta=0):
         content = fh.read(mode_length)
         content = struct.unpack(mode, content)[0] + delta
         new_contents.append(struct.pack(mode, content))
-    out_fh.write("".join(new_contents))
+    out_fh.write(b"".join(new_contents))
 
 
 def stco_copy(in_fh, out_fh, box, delta=0):
