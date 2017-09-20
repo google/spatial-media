@@ -313,26 +313,26 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                         metadata.video[trackName] = \
                             parse_spherical_xml(contents, console)
 
-            if sub_element.name == mpeg.constants.TAG_MDIA:
-                for mdia_sub_element in sub_element.contents:
-                    if mdia_sub_element.name != mpeg.constants.TAG_MINF:
-                        continue
-                    for stbl_elem in mdia_sub_element.contents:
-                        if stbl_elem.name != mpeg.constants.TAG_STBL:
+                if sub_element.name == mpeg.constants.TAG_MDIA:
+                    for mdia_sub_element in sub_element.contents:
+                        if mdia_sub_element.name != mpeg.constants.TAG_MINF:
                             continue
-                        for stsd_elem in stbl_elem.contents:
-                            if stsd_elem.name != mpeg.constants.TAG_STSD:
+                        for stbl_elem in mdia_sub_element.contents:
+                            if stbl_elem.name != mpeg.constants.TAG_STBL:
                                 continue
-                            for sa3d_container_elem in stsd_elem.contents:
-                                if sa3d_container_elem.name not in \
-                                        mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
+                            for stsd_elem in stbl_elem.contents:
+                                if stsd_elem.name != mpeg.constants.TAG_STSD:
                                     continue
-                                metadata.num_audio_channels = \
-                                    get_num_audio_channels(stsd_elem, fh)
-                                for sa3d_elem in sa3d_container_elem.contents:
-                                    if sa3d_elem.name == mpeg.constants.TAG_SA3D:
-                                        sa3d_elem.print_box(console)
-                                        metadata.audio = sa3d_elem
+                                for sa3d_container_elem in stsd_elem.contents:
+                                    if sa3d_container_elem.name not in \
+                                            mpeg.constants.SOUND_SAMPLE_DESCRIPTIONS:
+                                        continue
+                                    metadata.num_audio_channels = \
+                                        get_num_audio_channels(stsd_elem, fh)
+                                    for sa3d_elem in sa3d_container_elem.contents:
+                                        if sa3d_elem.name == mpeg.constants.TAG_SA3D:
+                                            sa3d_elem.print_box(console)
+                                            metadata.audio = sa3d_elem
     return metadata
 
 def parse_mpeg4(input_file, console):
