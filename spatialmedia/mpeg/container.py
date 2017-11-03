@@ -20,7 +20,6 @@
 Functions for loading MPEG files and manipulating boxes.
 """
 
-import StringIO
 import struct
 
 from spatialmedia.mpeg import box
@@ -34,7 +33,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4)
+    name = fh.read(4).decode()
 
     is_box = name not in constants.CONTAINERS_LIST
     # Handle the mp4a decompressor setting (wave -> mp4a).
@@ -50,11 +49,11 @@ def load(fh, position, end):
         header_size = 16
 
     if size < 8:
-        print "Error, invalid size", size, "in", name, "at", position
+        print("Error, invalid size", size, "in", name, "at", position)
         return None
 
     if (position + size) > end:
-        print "Error: Container box size exceeds bounds."
+        print("Error: Container box size exceeds bounds.")
         return None
 
     padding = 0
@@ -96,7 +95,7 @@ def load_multiple(fh, position=None, end=None):
     while (position < end):
         new_box = load(fh, position, end)
         if new_box is None:
-            print ("Error, failed to load box.")
+            print("Error, failed to load box.")
             return None
         loaded.append(new_box)
         position = new_box.position + new_box.size()
@@ -127,7 +126,7 @@ class Container(box.Box):
         """Prints the box structure and recurses on contents."""
         size1 = self.header_size
         size2 = self.content_size
-        print "{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2)
+        print("{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2))
 
         size = len(self.contents)
         for i in range(size):
@@ -167,7 +166,7 @@ class Container(box.Box):
             if content.name == element.name:
                 if isinstance(content, container_leaf):
                     return content.merge(element)
-                print "Error, cannot merge leafs."
+                print("Error, cannot merge leafs.")
                 return False
 
         self.contents.append(element)
@@ -197,11 +196,11 @@ class Container(box.Box):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name)
+            out_fh.write(self.name.encode())
 
         if self.padding > 0:
             in_fh.seek(self.content_start())
