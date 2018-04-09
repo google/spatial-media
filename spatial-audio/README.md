@@ -1,5 +1,5 @@
 # Spatial Audio Resources
-Google VR Audio enables Ambisonic spatial audio playback in [Google VR SDK](https://developers.google.com/vr/), [YouTube 360/VR](http://yt.be/spatialaudiovrhelp), [Jump Inspector](https://support.google.com/jump/answer/6399746) and [Omnitone](https://googlechrome.github.io/omnitone/#home). It provides ambisonic binaural decoding via Head Related Transfer Functions (HRTFs). This repository contains information and resources that can be used in order to build binaural preview software or to directly monitor the binaural output when creating content in Digital Audio Workstations (DAWs).
+Google VR Audio enables Ambisonic spatial audio playback in [Google VR SDK](https://developers.google.com/vr/), [YouTube 360/VR](http://yt.be/spatialaudiovrhelp), and [Omnitone](https://googlechrome.github.io/omnitone/#home). It provides ambisonic binaural decoding via Head Related Transfer Functions (HRTFs). This repository contains information and resources that can be used in order to build binaural preview software or to directly monitor the binaural output when creating content in Digital Audio Workstations (DAWs).
 
 # Contents of the directories
 ## raw symmetric cube hrirs 
@@ -50,7 +50,7 @@ We tested a large number of available HRTF datasets in a mobile VR application a
 ![perceived decoder quality](https://cloud.githubusercontent.com/assets/26985965/24811253/213b6628-1b7a-11e7-9079-f7a906e963a0.png)
 
 ### Should I use HRTF monitoring when creating ambisonic content for binaural reproduction (e.g. YouTube 360/VR)?
-When creating content for YouTube 360/VR it is recommended that you monitor your ambisonic audio using the provided *symmetric ambisonic binaural decoder* and/or preview the final mix either directly on YouTube or in the Jump Inspector to control the timbre (coloration) and loudness of your mix (please see below).
+When creating content for YouTube 360/VR it is recommended that you monitor your ambisonic audio using the provided *symmetric ambisonic binaural decoder* and/or preview the final mix either directly on YouTube to control the timbre (coloration) and loudness of your mix (please see below).
 
 ### What is timbral coloration of HRTFs?
 HRTFs add specific coloration to the decoded binaural output signal. However, this coloration is dependent on the HRTF set used (due to individual nature of HRTFs). For example, here is an example HRTF frequency response of the THRIVE set and a similar response of the SADIE KU100 set:

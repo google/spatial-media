@@ -7,5 +7,3 @@ A collection of specifications and tools for 360&deg; video and spatial audio, i
 - [Spherical Video V2](docs/spherical-video-v2-rfc.md) metadata specification
 - [VR180 Video Format](docs/vr180.md) VR180 video format
 - [Spatial Media tools](spatialmedia/) for injecting spatial media metadata in media files
-
-Try out [Jump Inspector](https://g.co/jump/inspector), an Android app for previewing VR videos with spatial audio.
