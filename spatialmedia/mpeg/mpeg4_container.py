@@ -52,14 +52,14 @@ def load(fh):
     loaded_mpeg4.contents = contents
 
     for element in loaded_mpeg4.contents:
-        if (element.name == "moov"):
+        if (element.name == constants.TAG_MOOV):
             loaded_mpeg4.moov_box = element
-        if (element.name == "free"):
+        if (element.name == constants.TAG_FREE):
             loaded_mpeg4.free_box = element
-        if (element.name == "mdat"
+        if (element.name == constants.TAG_MDAT
                 and not loaded_mpeg4.first_mdat_box):
             loaded_mpeg4.first_mdat_box = element
-        if (element.name == "ftyp"):
+        if (element.name == constants.TAG_FTYP):
             loaded_mpeg4.ftyp_box = element
 
     if not loaded_mpeg4.moov_box:

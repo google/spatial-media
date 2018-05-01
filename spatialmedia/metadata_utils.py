@@ -154,7 +154,7 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if in_fh.read(4).decode() == mpeg.constants.TRAK_TYPE_VIDE:
+                    if in_fh.read(4) == mpeg.constants.TRAK_TYPE_VIDE:
                         added = True
                         break
 
@@ -187,7 +187,7 @@ def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
                         continue
                     position = mdia_sub_element.content_start() + 8
                     in_fh.seek(position)
-                    if in_fh.read(4).decode() == mpeg.constants.TAG_SOUN:
+                    if in_fh.read(4) == mpeg.constants.TAG_SOUN:
                         return inject_spatial_audio_atom(
                             in_fh, sub_element, audio_metadata, console)
     return True

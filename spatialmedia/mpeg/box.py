@@ -41,7 +41,7 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4).decode()
+    name = fh.read(4)
 
     if size == 1:
         size = struct.unpack(">Q", fh.read(8))[0]
@@ -88,11 +88,11 @@ class Box(object):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name)
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name)
 
         if self.content_start():
             in_fh.seek(self.content_start())
