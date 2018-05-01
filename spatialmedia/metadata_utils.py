@@ -17,6 +17,7 @@
 
 """Utilities for examining/injecting spatial media metadata in MP4/MOV files."""
 
+import collections
 import os
 import re
 import struct
@@ -85,14 +86,6 @@ SPHERICAL_TAGS_LIST = [
     "CroppedAreaTopPixels",
 ]
 
-SPATIAL_AUDIO_DEFAULT_METADATA = {
-    "ambisonic_order": 1,
-    "ambisonic_type": "periphonic",
-    "ambisonic_channel_ordering": "ACN",
-    "ambisonic_normalization": "SN3D",
-    "channel_map": [0, 1, 2, 3],
-}
-
 class Metadata(object):
     def __init__(self):
         self.video = None
@@ -112,6 +105,23 @@ for tag in SPHERICAL_TAGS_LIST:
 integer_regex_group = "(\d+)"
 crop_regex = "^{0}$".format(":".join([integer_regex_group] * 6))
 
+MAX_SUPPORTED_AMBIX_ORDER = 1
+
+SpatialAudioDescription = collections.namedtuple(
+    'SpatialAudioDescription',
+    'order is_supported has_head_locked_stereo')
+
+def get_spatial_audio_description(num_channels):
+  for i in range(1, MAX_SUPPORTED_AMBIX_ORDER+1):
+    if (i + 1)*(i + 1) == num_channels:
+      return SpatialAudioDescription(
+          order=i, is_supported=True, has_head_locked_stereo=False)
+    elif ((i + 1)*(i + 1) + 2) == num_channels:
+      return SpatialAudioDescription(
+          order=i, is_supported=True, has_head_locked_stereo=True)
+
+  return SpatialAudioDescription(
+      order=-1, is_supported=False, has_head_locked_stereo=True)
 
 def spherical_uuid(metadata):
     """Constructs a uuid containing spherical metadata.
@@ -174,7 +184,7 @@ def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
       mpeg4_file: mpeg4, Mpeg4 file structure to add metadata.
       in_fh: file handle, Source for uncached file contents.
       audio_metadata: dictionary ('ambisonic_type': string,
-      'ambisonic_order': int),
+      'ambisonic_order': int, 'head_locked_stereo': Bool),
       Supports 'periphonic' ambisonic type only.
     """
     for element in mpeg4_file.moov_box.contents:
@@ -218,18 +228,22 @@ def inject_spatial_audio_atom(
                                    sample_description.header_size + 16)
                         num_channels = get_num_audio_channels(
                             sub_element, in_fh)
-                        num_ambisonic_components = \
-                            get_expected_num_audio_components(
+                        expected_num_channels = \
+                            get_expected_num_audio_channels(
                                 audio_metadata["ambisonic_type"],
-                                audio_metadata["ambisonic_order"])
-                        if num_channels != num_ambisonic_components:
+                                audio_metadata["ambisonic_order"],
+                                audio_metadata["head_locked_stereo"])
+                        if num_channels != expected_num_channels:
+                            head_locked_stereo_msg = (" with head-locked stereo" if
+                                            audio_metadata["head_locked_stereo"] else "")
                             err_msg = "Error: Found %d audio channel(s). "\
                                   "Expected %d channel(s) for %s ambisonics "\
-                                  "of order %d."\
+                                  "of order %d%s."\
                                 % (num_channels,
-                                   num_ambisonic_components,
+                                   expected_num_channels,
                                    audio_metadata["ambisonic_type"],
-                                   audio_metadata["ambisonic_order"])
+                                   audio_metadata["ambisonic_order"],
+                                   head_locked_stereo_msg)
                             console(err_msg)
                             return False
                         sa3d_atom = mpeg.SA3DBox.create(
@@ -505,12 +519,15 @@ def get_descriptor_length(in_fh):
     return descriptor_length
 
 
-def get_expected_num_audio_components(ambisonics_type, ambisonics_order):
+def get_expected_num_audio_channels(
+    ambisonics_type, ambisonics_order, head_locked_stereo):
     """ Returns the expected number of ambisonic components for a given
         ambisonic type and ambisonic order.
     """
+    head_locked_stereo_channels = 2 if head_locked_stereo == True else 0
     if (ambisonics_type == 'periphonic'):
-        return ((ambisonics_order + 1) * (ambisonics_order + 1))
+        return (((ambisonics_order + 1) * (ambisonics_order + 1)) +
+                head_locked_stereo_channels)
     else:
         return -1
 
@@ -631,3 +648,20 @@ def get_num_audio_tracks(mpeg4_file, in_fh):
                     if (in_fh.read(4) == mpeg.constants.TAG_SOUN):
                         num_audio_tracks += 1
     return num_audio_tracks
+
+
+def get_spatial_audio_metadata(ambisonic_order, head_locked_stereo):
+    num_channels = get_expected_num_audio_channels(
+        "periphonic", ambisonic_order, head_locked_stereo)
+    metadata = {
+        "ambisonic_order": 0,
+        "head_locked_stereo": False,
+        "ambisonic_type": "periphonic",
+        "ambisonic_channel_ordering": "ACN",
+        "ambisonic_normalization": "SN3D",
+        "channel_map": [],
+    }
+    metadata['ambisonic_order'] = ambisonic_order
+    metadata['head_locked_stereo'] = head_locked_stereo
+    metadata['channel_map'] = range(0, num_channels)
+    return metadata
