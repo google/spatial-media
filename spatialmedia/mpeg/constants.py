@@ -17,45 +17,45 @@
 
 """MPEG-4 constants."""
 
-TRAK_TYPE_VIDE = "vide"
+TRAK_TYPE_VIDE = b"vide"
 
 # Leaf types.
-TAG_STCO = "stco"
-TAG_CO64 = "co64"
-TAG_FREE = "free"
-TAG_MDAT = "mdat"
-TAG_XML = "xml "
-TAG_HDLR = "hdlr"
-TAG_FTYP = "ftyp"
-TAG_ESDS = "esds"
-TAG_SOUN = "soun"
-TAG_SA3D = "SA3D"
+TAG_STCO = b"stco"
+TAG_CO64 = b"co64"
+TAG_FREE = b"free"
+TAG_MDAT = b"mdat"
+TAG_XML = b"xml "
+TAG_HDLR = b"hdlr"
+TAG_FTYP = b"ftyp"
+TAG_ESDS = b"esds"
+TAG_SOUN = b"soun"
+TAG_SA3D = b"SA3D"
 
 # Container types.
-TAG_MOOV = "moov"
-TAG_UDTA = "udta"
-TAG_META = "meta"
-TAG_TRAK = "trak"
-TAG_MDIA = "mdia"
-TAG_MINF = "minf"
-TAG_STBL = "stbl"
-TAG_STSD = "stsd"
-TAG_UUID = "uuid"
-TAG_WAVE = "wave"
+TAG_MOOV = b"moov"
+TAG_UDTA = b"udta"
+TAG_META = b"meta"
+TAG_TRAK = b"trak"
+TAG_MDIA = b"mdia"
+TAG_MINF = b"minf"
+TAG_STBL = b"stbl"
+TAG_STSD = b"stsd"
+TAG_UUID = b"uuid"
+TAG_WAVE = b"wave"
 
 # Sound sample descriptions.
-TAG_NONE = "NONE"
-TAG_RAW_ = "raw "
-TAG_TWOS = "twos"
-TAG_SOWT = "sowt"
-TAG_FL32 = "fl32"
-TAG_FL64 = "fl64"
-TAG_IN24 = "in24"
-TAG_IN32 = "in32"
-TAG_ULAW = "ulaw"
-TAG_ALAW = "alaw"
-TAG_LPCM = "lpcm"
-TAG_MP4A = "mp4a"
+TAG_NONE = b"NONE"
+TAG_RAW_ = b"raw "
+TAG_TWOS = b"twos"
+TAG_SOWT = b"sowt"
+TAG_FL32 = b"fl32"
+TAG_FL64 = b"fl64"
+TAG_IN24 = b"in24"
+TAG_IN32 = b"in32"
+TAG_ULAW = b"ulaw"
+TAG_ALAW = b"alaw"
+TAG_LPCM = b"lpcm"
+TAG_MP4A = b"mp4a"
 
 SOUND_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_NONE,
@@ -82,4 +82,3 @@ CONTAINERS_LIST = frozenset([
     TAG_UDTA,
     TAG_WAVE,
     ]).union(SOUND_SAMPLE_DESCRIPTIONS)
-

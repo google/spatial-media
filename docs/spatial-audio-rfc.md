@@ -1,12 +1,12 @@
 # Spatial Audio RFC (draft)
-*This document describes an open metadata scheme by which MP4 multimedia containers may accommodate spatial and non-diegetic audio. Comments are welcome on the [spatial-media-discuss](https://groups.google.com/forum/#!forum/spatial-media-discuss) mailing list or by [filing an issue](https://github.com/google/spatial-media/issues) on GitHub.*
+*This document describes an open metadata scheme by which MP4 multimedia containers may accommodate spatial and head-locked stereo audio. Comments are welcome on the [spatial-media-discuss](https://groups.google.com/forum/#!forum/spatial-media-discuss) mailing list or by [filing an issue](https://github.com/google/spatial-media/issues) on GitHub.*
 
 ------------------------------------------------------
 
 ## Metadata Format
 
 ### MP4
-Spatial audio metadata is stored in a new box, `SA3D`, defined in this RFC. Non-diegetic audio metadata is stored in a new box, `SAND`, defined in this RFC. The metadata is applicable to individual tracks in an MP4 container.
+Spatial audio metadata is stored in a new box, `SA3D`, defined in this RFC.
 
 #### Spatial Audio Box (SA3D)
 ##### Definition
@@ -35,7 +35,9 @@ aligned(8) class SpatialAudioBox extends Box(‘SA3D’) {
 ##### Semantics
 - `version` is an 8-bit unsigned integer that specifies the version of this box. Must be set to `0`.
 
-- `ambisonic_type` is an 8-bit unsigned integer that specifies the type of ambisonic audio represented; the following values are defined:
+- `head_locked_stereo` is a 1-bit flag used to indicate that the stored audio track contains head-locked stereo audio in addition to ambisonics audio. The flag should be set if the track contains head-locked stereo and unset otherwise.
+
+- `ambisonic_type` is a 7-bit unsigned integer that specifies the type of ambisonic audio represented; the following values are defined:
 
 | `ambisonic_type` | Ambisonic Type Description |
 |:-----------------|:---------------------------|
@@ -59,9 +61,11 @@ aligned(8) class SpatialAudioBox extends Box(‘SA3D’) {
 
 - `channel_map` is a sequence of 32-bit unsigned integers that maps audio channels in a given audio track to ambisonic components, given the defined `ambisonic_channel_ordering`. The sequence of `channel_map` values should match the channel sequence within the given audio track.
 
-  For example, consider a 4-channel audio track containing ambisonic components *W*, *X*, *Y*, *Z* at channel indexes 0, 1, 2, 3, respectively. For `ambisonic_channel_ordering = 0` (ACN), the ordering of components should be *W*, *Y*, *Z*, *X*, so the `channel_map` sequence should be `0`, `2`, `3`, `1`.
+  For the example case of `ambisonic_type = 0` (Periphonic), consider a 4-channel audio track containing ambisonic components *W*, *X*, *Y*, *Z* at channel indexes `0`, `1`, `2`, `3`, respectively. For `ambisonic_channel_ordering = 0` (ACN), the ordering of components should be *W*, *Y*, *Z*, *X*, so the `channel_map` sequence should be `0`, `2`, `3`, `1`.
 
-  As a simpler example, for a 4-channel audio track containing ambisonic components *W*, *Y*, *Z*, *X* at channel indexes 0, 1, 2, 3, respectively, the `channel_map` sequence should be specified as `0`, `1`, `2`, `3` when `ambisonic_channel_ordering = 0` (ACN).
+  As a simpler example, for a 4-channel audio track containing ambisonic components *W*, *Y*, *Z*, *X* at channel indexes `0`, `1`, `2`, `3`, respectively, the `channel_map` sequence should be specified as `0`, `1`, `2`, `3` when `ambisonic_channel_ordering = 0` (ACN).
+
+  For the example case of `ambisonic_type = 0` (Periphonic) with `head_locked_stereo = 1`, the stored audio will consist of `4` ambisonic components *W*, *Y*, *Z*, *X* in addition to head-locked stereo components *L* and *R*. In this case, the SA3D atom will define `num_channels = 6` and a `channel_map` specified as `0`, `1`, `2`, `3`, `4`, `5` indicating that the channels are laid out in the file as *W*, *Y*, *Z*, *X*, *L*, *R*. This representation extends to different layouts of ambisonics and head-locked stereo components. For example, a channel layout of `4`, `5`, `0`, `1`, `2`, `3`  indicates that the layout of the stored audio is *L*, *R*, *W*, *Y*, *Z*, *X*.
 
 ##### Example
 
@@ -91,55 +95,6 @@ where the `SA3D` box has the following data:
 | `channel_map` | `2` |
 | `channel_map` | `3` |
 | `channel_map` | `1` |
-
-------------------------------------------------------
-
-#### Non-Diegetic Audio Box (SAND)
-##### Definition
-Box Type: `SAND`  
-Container: Sound Sample Description box (e.g., `mp4a`, `lpcm`, `sowt`, etc.)  
-Mandatory: No  
-Quantity: Zero or one  
-
-When present, provides additional information about the non-diegetic audio content contained in this audio track. This can be used alongisde `SA3D` in a head-tracked virtual reality experience to provide audio which should remain unchanged by listener head rotation; e.g., narration or stereo music.
-
-##### Syntax
-```
-aligned(8) class NonDiegeticAudioBox extends Box(‘SAND’) {
-    unsigned int(8)  version;
-}
-```
-
-##### Semantics
-- `version` is an 8-bit unsigned integer that specifies the version of this box. Must be set to `0`.
-
-##### Example
-
-Here is an example MP4 box hierarchy for a file containing the `SA3D` and `SAND` boxes, to mix spatial audio with non-diegetic audio:
-
-- moov
-  - trak
-    - mdia
-      - minf
-        - stbl
-          - stsd
-            - mp4a
-              - esds
-              - SA3D
-  - trak
-    - mdia
-      - minf
-        - stbl
-          - stsd
-            - mp4a
-              - esds
-              - SAND 
-
-where the `SAND` box has the following data:
-
-| Field Name | Value |
-|:-----------|:-----|
-| `version` | `0` |
 
 ------------------------------------------------------
 

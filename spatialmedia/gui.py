@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Spatial Media Metadata Injector GUI 
+"""Spatial Media Metadata Injector GUI
 
 GUI application for examining/injecting spatial media metadata in MP4/MOV files.
 """
@@ -36,8 +36,10 @@ except ImportError:
 path = os.path.dirname(sys.modules[__name__].__file__)
 path = os.path.join(path, '..')
 sys.path.insert(0, path)
-from spatialmedia import metadata_utils 
+from spatialmedia import metadata_utils
 
+SPATIAL_AUDIO_LABEL = "My video has spatial audio (ambiX ACN/SN3D format)"
+HEAD_LOCKED_STEREO_LABEL = "with head-locked stereo"
 
 class Console(object):
     def __init__(self):
@@ -85,7 +87,8 @@ class Application(Frame):
         file_extension = os.path.splitext(infile)[1].lower()
 
         self.var_spherical.set(1)
-        self.enable_spatial_audio = parsed_metadata.num_audio_channels == 4
+        self.spatial_audio_description = metadata_utils.get_spatial_audio_description(
+            parsed_metadata.num_audio_channels)
 
         if not metadata:
             self.var_3d.set(0)
@@ -108,7 +111,7 @@ class Application(Frame):
 
         if audio_metadata:
             self.var_spatial_audio.set(1)
-            print audio_metadata.get_metadata_string()
+            print(audio_metadata.get_metadata_string())
 
         self.update_state()
 
@@ -121,7 +124,9 @@ class Application(Frame):
         metadata.video = metadata_utils.generate_spherical_xml(stereo=stereo)
 
         if self.var_spatial_audio.get():
-            metadata.audio = metadata_utils.SPATIAL_AUDIO_DEFAULT_METADATA 
+          metadata.audio = metadata_utils.get_spatial_audio_metadata(
+              self.spatial_audio_description.order,
+              self.spatial_audio_description.has_head_locked_stereo)
 
         console = Console()
         metadata_utils.inject_metadata(
@@ -172,12 +177,18 @@ class Application(Frame):
         if self.var_spherical.get():
             self.checkbox_3D.configure(state="normal")
             self.button_inject.configure(state="normal")
-            if self.enable_spatial_audio:
+            if self.spatial_audio_description.is_supported:
                 self.checkbox_spatial_audio.configure(state="normal")
         else:
             self.checkbox_3D.configure(state="disabled")
             self.button_inject.configure(state="disabled")
             self.checkbox_spatial_audio.configure(state="disabled")
+        if self.spatial_audio_description.has_head_locked_stereo:
+            self.label_spatial_audio.configure(
+                text='{}\n{}'.format(
+                    SPATIAL_AUDIO_LABEL, HEAD_LOCKED_STEREO_LABEL))
+        else:
+            self.label_spatial_audio.configure(text=SPATIAL_AUDIO_LABEL)
 
     def set_error(self, text):
         self.label_message["text"] = text
@@ -234,8 +245,8 @@ class Application(Frame):
         # Spatial Audio Checkbox
         row += 1
         column = 0
-        self.label_spatial_audio = Label(self, anchor=W)
-        self.label_spatial_audio["text"] = "My video has spatial audio (ambiX ACN/SN3D format)"
+        self.label_spatial_audio = Label(self, anchor=W, justify=LEFT)
+        self.label_spatial_audio["text"] = SPATIAL_AUDIO_LABEL
         self.label_spatial_audio.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
 
         column += 1
@@ -287,7 +298,7 @@ class Application(Frame):
         master.attributes("-topmost", True)
         master.focus_force()
         self.after(50, lambda: master.attributes("-topmost", False))
-        self.enable_spatial_audio = False
+        self.spatial_audio_description = None
 
 def report_callback_exception(self, *args):
     exception = traceback.format_exception(*args)

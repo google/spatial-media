@@ -33,12 +33,12 @@ def load(fh, position, end):
     fh.seek(position)
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
-    name = fh.read(4).decode()
+    name = fh.read(4)
 
     is_box = name not in constants.CONTAINERS_LIST
     # Handle the mp4a decompressor setting (wave -> mp4a).
     if name == constants.TAG_MP4A and size == 12:
-        is_box = True 
+        is_box = True
     if is_box:
         if name == constants.TAG_SA3D:
             return sa3d.load(fh, position, end)
@@ -196,11 +196,11 @@ class Container(box.Box):
         """
         if self.header_size == 16:
             out_fh.write(struct.pack(">I", 1))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name)
             out_fh.write(struct.pack(">Q", self.size()))
         elif self.header_size == 8:
             out_fh.write(struct.pack(">I", self.size()))
-            out_fh.write(self.name.encode())
+            out_fh.write(self.name)
 
         if self.padding > 0:
             in_fh.seek(self.content_start())
