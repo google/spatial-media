@@ -19,23 +19,17 @@ pyz = PYZ(a.pure, a.zipped_data,
           cipher=block_cipher)
 exe = EXE(pyz,
           a.scripts,
-          exclude_binaries=True,
+          a.binaries,
+          a.zipfiles,
+          a.datas,
           name='Spatial Media Metadata Injector',
           debug=False,
           strip=False,
           upx=True,
-          console=False)
-coll = COLLECT(exe,
-               a.binaries,
-               a.zipfiles,
-               a.datas,
-               strip=False,
-               upx=True,
-               name='Spatial Media Metadata Injector')
+          console=False )
 if sys.platform == 'darwin':
-    app = BUNDLE(coll,
+    app = BUNDLE(exe,
                  name='Spatial Media Metadata Injector.app',
                  icon=None,
                  bundle_identifier=None,
                  info_plist={'NSHighResolutionCapable': 'True'})
-
