@@ -1,4 +1,4 @@
-# Spherical Video V2 RFC (draft)
+# Spherical Video V2 RFC
 *This document describes a revised open metadata scheme by which MP4 (ISOBMFF)
 and WebM (Matroska) multimedia containers may accommodate spherical videos. Comments are welcome by
 discussing on the [Spatial Media Google
