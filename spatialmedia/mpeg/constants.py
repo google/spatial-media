@@ -56,6 +56,7 @@ TAG_ULAW = b"ulaw"
 TAG_ALAW = b"alaw"
 TAG_LPCM = b"lpcm"
 TAG_MP4A = b"mp4a"
+TAG_OPUS = b"Opus"
 
 SOUND_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_NONE,
@@ -70,6 +71,7 @@ SOUND_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_ALAW,
     TAG_LPCM,
     TAG_MP4A,
+    TAG_OPUS,
     ])
 
 CONTAINERS_LIST = frozenset([
