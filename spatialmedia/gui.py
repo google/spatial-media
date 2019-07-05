@@ -26,6 +26,7 @@ import sys
 import tkFileDialog
 import tkMessageBox
 import traceback
+import ttk
 
 try:
     from Tkinter import *
@@ -267,15 +268,16 @@ class Application(Frame):
         buttons_frame = Frame(self)
         buttons_frame.grid(row=row, column=0, columnspan=3, padx=PAD_X, pady=10)
 
-        self.button_open = Button(buttons_frame)
+        style = ttk.Style() 
+        style.configure('TButton', foreground="black") 
+
+        self.button_open = ttk.Button(buttons_frame)
         self.button_open["text"] = "Open"
-        self.button_open["fg"] = "black"
         self.button_open["command"] = self.action_open
         self.button_open.grid(row=0, column=0, padx=14, pady=2)
 
-        self.button_inject = Button(buttons_frame)
+        self.button_inject = ttk.Button(buttons_frame)
         self.button_inject["text"] = "Inject metadata"
-        self.button_inject["fg"] = "black"
         self.button_inject["command"] = self.action_inject
         self.button_inject.grid(row=0, column=1, padx=14, pady=2)
 
