@@ -23,38 +23,47 @@ GUI application for examining/injecting spatial media metadata in MP4/MOV files.
 import ntpath
 import os
 import sys
-import tkFileDialog
-import tkMessageBox
 import traceback
-import ttk
 
 try:
-    from Tkinter import *
+    # python 3
+    import tkinter as tk
+    from tkinter import filedialog, messagebox, ttk
+    import configparser
+except ImportError:
+    # python 2
+    import Tkinter as tk
+    from tkFont import Font, nametofont
+    import tkMessageBox as messagebox
+    import tkFileDialog as filedialog
+    import ttk
 except ImportError:
     print("Tkinter library is not available.")
     exit(0)
 
+
 path = os.path.dirname(sys.modules[__name__].__file__)
-path = os.path.join(path, '..')
+path = os.path.join(path, "..")
 sys.path.insert(0, path)
 from spatialmedia import metadata_utils
 
 SPATIAL_AUDIO_LABEL = "My video has spatial audio (ambiX ACN/SN3D format)"
 HEAD_LOCKED_STEREO_LABEL = "with head-locked stereo"
 
-class Console(object):
+
+class Console():
     def __init__(self):
         self.log = []
 
     def append(self, text):
-        print(text.encode('utf-8'))
+        print(text.encode("utf-8"))
         self.log.append(text)
 
 
-class Application(Frame):
+class Application(tk.Frame):
     def action_open(self):
         """Triggers open file diaglog, reading a new file's metadata."""
-        tmp_in_file = tkFileDialog.askopenfilename(**self.open_options)
+        tmp_in_file = filedialog.askopenfilename(**self.open_options)
         if not tmp_in_file:
             return
         self.in_file = tmp_in_file
@@ -62,8 +71,7 @@ class Application(Frame):
         self.set_message("Current 360 video: %s" % ntpath.basename(self.in_file))
 
         console = Console()
-        parsed_metadata = metadata_utils.parse_metadata(self.in_file,
-                                                        console.append)
+        parsed_metadata = metadata_utils.parse_metadata(self.in_file, console.append)
 
         metadata = None
         audio_metadata = None
@@ -73,8 +81,7 @@ class Application(Frame):
 
         for line in console.log:
             if "Error" in line:
-                self.set_error("Failed to load file %s"
-                               % ntpath.basename(self.in_file))
+                self.set_error("Failed to load file %s" % ntpath.basename(self.in_file))
                 self.var_spherical.set(0)
                 self.var_spatial_audio.set(0)
                 self.disable_state()
@@ -89,7 +96,8 @@ class Application(Frame):
 
         self.var_spherical.set(1)
         self.spatial_audio_description = metadata_utils.get_spatial_audio_description(
-            parsed_metadata.num_audio_channels)
+            parsed_metadata.num_audio_channels
+        )
 
         if not metadata:
             self.var_3d.set(0)
@@ -98,7 +106,7 @@ class Application(Frame):
             self.var_spatial_audio.set(0)
 
         if metadata:
-            metadata = metadata.itervalues().next()
+            metadata = next(iter(metadata.values()))
 
             if metadata.get("Spherical", "") == "true":
                 self.var_spherical.set(1)
@@ -118,22 +126,25 @@ class Application(Frame):
 
     def action_inject_delay(self):
         stereo = None
-        if (self.var_3d.get()):
+        if self.var_3d.get():
             stereo = "top-bottom"
 
         metadata = metadata_utils.Metadata()
         metadata.video = metadata_utils.generate_spherical_xml(stereo=stereo)
 
         if self.var_spatial_audio.get():
-          metadata.audio = metadata_utils.get_spatial_audio_metadata(
-              self.spatial_audio_description.order,
-              self.spatial_audio_description.has_head_locked_stereo)
+            metadata.audio = metadata_utils.get_spatial_audio_metadata(
+                self.spatial_audio_description.order,
+                self.spatial_audio_description.has_head_locked_stereo,
+            )
 
         console = Console()
         metadata_utils.inject_metadata(
-            self.in_file, self.save_file, metadata, console.append)
-        self.set_message("Successfully saved file to %s\n"
-                         % ntpath.basename(self.save_file))
+            self.in_file, self.save_file, metadata, console.append
+        )
+        self.set_message(
+            "Successfully saved file to %s\n" % ntpath.basename(self.save_file)
+        )
         self.button_open.configure(state="normal")
         self.update_state()
 
@@ -142,9 +153,8 @@ class Application(Frame):
         split_filename = os.path.splitext(ntpath.basename(self.in_file))
         base_filename = split_filename[0]
         extension = split_filename[1]
-        self.save_options["initialfile"] = (base_filename
-                                            + "_injected" + extension)
-        self.save_file = tkFileDialog.asksaveasfilename(**self.save_options)
+        self.save_options["initialfile"] = base_filename + "_injected" + extension
+        self.save_file = filedialog.asksaveasfilename(**self.save_options)
         if not self.save_file:
             return
 
@@ -186,8 +196,8 @@ class Application(Frame):
             self.checkbox_spatial_audio.configure(state="disabled")
         if self.spatial_audio_description.has_head_locked_stereo:
             self.label_spatial_audio.configure(
-                text='{}\n{}'.format(
-                    SPATIAL_AUDIO_LABEL, HEAD_LOCKED_STEREO_LABEL))
+                text="{}\n{}".format(SPATIAL_AUDIO_LABEL, HEAD_LOCKED_STEREO_LABEL)
+            )
         else:
             self.label_spatial_audio.configure(text=SPATIAL_AUDIO_LABEL)
 
@@ -209,67 +219,80 @@ class Application(Frame):
 
         row = row + 1
         column = 0
-        self.label_message = Label(self)
+        self.label_message = tk.Label(self)
         self.label_message["text"] = "Click Open to open your 360 video."
-        self.label_message.grid(row=row, column=column, rowspan=1,
-                                columnspan=2, padx=PAD_X, pady=10, sticky=W)
+        self.label_message.grid(
+            row=row,
+            column=column,
+            rowspan=1,
+            columnspan=2,
+            padx=PAD_X,
+            pady=10,
+            sticky="w",
+        )
 
         row = row + 1
-        separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
-        separator.grid(columnspan=row, padx=PAD_X, pady=4, sticky=N+E+S+W)
+        separator = tk.Frame(self, relief=tk.GROOVE, bd=1, height=2, bg="white")
+        separator.grid(columnspan=row, padx=PAD_X, pady=4, sticky="n" + "e" + "s" + "w")
 
         # Spherical Checkbox
         row += 1
-        self.label_spherical = Label(self, anchor=W)
+        self.label_spherical = tk.Label(self, anchor="w")
         self.label_spherical["text"] = "My video is spherical (360)"
-        self.label_spherical.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        self.label_spherical.grid(
+            row=row, column=column, padx=PAD_X, pady=7, sticky="w"
+        )
         column += 1
 
-        self.var_spherical = IntVar()
-        self.checkbox_spherical = Checkbutton(self, variable=self.var_spherical)
+        self.var_spherical = tk.IntVar()
+        self.checkbox_spherical = tk.Checkbutton(self, variable=self.var_spherical)
         self.checkbox_spherical["command"] = self.action_set_spherical
         self.checkbox_spherical.grid(row=row, column=column, padx=PAD_X, pady=2)
 
         # 3D
         row = row + 1
         column = 0
-        self.label_3D = Label(self, anchor=W)
+        self.label_3D = tk.Label(self, anchor="w")
         self.label_3D["text"] = "My video is stereoscopic 3D (top/bottom layout)"
-        self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        self.label_3D.grid(row=row, column=column, padx=PAD_X, pady=7, sticky="w")
         column += 1
 
-        self.var_3d = IntVar()
-        self.checkbox_3D = Checkbutton(self, variable=self.var_3d)
+        self.var_3d = tk.IntVar()
+        self.checkbox_3D = tk.Checkbutton(self, variable=self.var_3d)
         self.checkbox_3D["command"] = self.action_set_3d
         self.checkbox_3D.grid(row=row, column=column, padx=PAD_X, pady=2)
 
         # Spatial Audio Checkbox
         row += 1
         column = 0
-        self.label_spatial_audio = Label(self, anchor=W, justify=LEFT)
+        self.label_spatial_audio = tk.Label(self, anchor="w", justify=tk.LEFT)
         self.label_spatial_audio["text"] = SPATIAL_AUDIO_LABEL
-        self.label_spatial_audio.grid(row=row, column=column, padx=PAD_X, pady=7, sticky=W)
+        self.label_spatial_audio.grid(
+            row=row, column=column, padx=PAD_X, pady=7, sticky="w"
+        )
 
         column += 1
-        self.var_spatial_audio = IntVar()
-        self.checkbox_spatial_audio = \
-            Checkbutton(self, variable=self.var_spatial_audio)
+        self.var_spatial_audio = tk.IntVar()
+        self.checkbox_spatial_audio = tk.Checkbutton(
+            self, variable=self.var_spatial_audio
+        )
         self.checkbox_spatial_audio["command"] = self.action_set_spatial_audio
-        self.checkbox_spatial_audio.grid(
-            row=row, column=column, padx=0, pady=0)
+        self.checkbox_spatial_audio.grid(row=row, column=column, padx=0, pady=0)
 
         row = row + 1
-        separator = Frame(self, relief=GROOVE, bd=1, height=2, bg="white")
-        separator.grid(columnspan=row, padx=PAD_X, pady=10, sticky=N+E+S+W)
+        separator = tk.Frame(self, relief=tk.GROOVE, bd=1, height=2, bg="white")
+        separator.grid(
+            columnspan=row, padx=PAD_X, pady=10, sticky="n" + "e" + "s" + "w"
+        )
 
         # Button Frame
         column = 0
         row = row + 1
-        buttons_frame = Frame(self)
+        buttons_frame = tk.Frame(self)
         buttons_frame.grid(row=row, column=0, columnspan=3, padx=PAD_X, pady=10)
 
-        style = ttk.Style() 
-        style.configure('TButton', foreground="black") 
+        style = ttk.Style()
+        style.configure("TButton", foreground="black")
 
         self.button_open = ttk.Button(buttons_frame)
         self.button_open["text"] = "Open"
@@ -283,14 +306,14 @@ class Application(Frame):
 
     def __init__(self, master=None):
         master.wm_title("Spatial Media Metadata Injector")
-        master.config(menu=Menu(master))
+        master.config(menu=tk.Menu(master))
         self.title = "Spatial Media Metadata Injector"
         self.open_options = {}
         self.open_options["filetypes"] = [("Videos", ("*.mov", "*.mp4"))]
 
         self.save_options = {}
 
-        Frame.__init__(self, master)
+        tk.Frame.__init__(self, master)
         self.create_widgets()
         self.pack()
 
@@ -302,15 +325,18 @@ class Application(Frame):
         self.after(50, lambda: master.attributes("-topmost", False))
         self.spatial_audio_description = None
 
+
 def report_callback_exception(self, *args):
     exception = traceback.format_exception(*args)
-    tkMessageBox.showerror("Error", exception)
+    messagebox.showerror("Error", exception)
+
 
 def main():
-    root = Tk()
-    Tk.report_callback_exception = report_callback_exception
+    root = tk.Tk()
+    tk.report_callback_exception = report_callback_exception
     app = Application(master=root)
     app.mainloop()
+
 
 if __name__ == "__main__":
     main()
