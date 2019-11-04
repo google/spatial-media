@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<!-- vtour_visualize.xml - Slightly modified version of vtour.xml for basic Visualize panoramic output -->
+
+-<krpano title="5" version="1.19">
+
+<include url="skin/vtour_visualizeskin.xml"/>
+
+<!-- customize skin settings: maps, gyro, webvr, thumbnails, tooltips, layout, design, ... -->
+
+
+<skin_settings title="true" design_text_shadow="1" design_text_css="color:#FFFFFF; font-family:Arial;" design_thumbborder_bgroundedge="0" design_thumbborder_padding="2" design_thumbborder_bgborder="3 0xFFFFFF 1.0" design_bgshadow="0 4 10 0x000000 0.3" design_bgroundedge="1" design_bgborder="0" design_bgalpha="0.8" design_bgcolor="0x2D3E50" design_skin_images="vtourskin_light.png" controlbar_overlap.fractionalscaling="0" controlbar_overlap.no-fractionalscaling="10" controlbar_offset_closed="-40" controlbar_offset="20" controlbar_height="40" controlbar_width="-24" layout_maxwidth="814" layout_width="100%" loadingtext="loading..." loadscene_blend_next="SLIDEBLEND(0.5, 0, 0.75, linear)" loadscene_blend_prev="SLIDEBLEND(0.5, 180, 0.75, linear)" loadscene_blend="OPENBLEND(0.5, 0.0, 0.75, 0.05, linear)" loadscene_flags="MERGE" deeplinking="false" tooltips_mapspots="false" tooltips_hotspots="false" tooltips_thumbs="false" tooltips_buttons="false" thumbs_loop="false" thumbs_scrollindicator="false" thumbs_scrollbuttons="false" thumbs_onhoverscrolling="false" thumbs_dragging="true" thumbs_text="false" thumbs_opened="false" thumbs_crop="0|40|240|160" thumbs_padding="10" thumbs_height="80" thumbs_width="120" thumbs="false" littleplanetintro="true" webvr_prev_next_hotspots="false" webvr_gyro_keeplookingdirection="false" webvr="false" gyro="true" maps_zoombuttons="false" maps_google_api_key="" maps_bing_api_key="" maps_type="google" maps="false"/>
+
+<!--For an alternative skin design either change the <skin_settings> valuesfrom above or optionally include one of the predefined designs from below. -->
+
+
+<!-- <include url="skin/vtourskin_design_flat_light.xml" /> -->
+
+
+<include url="skin/vtour_visualize_design_glass.xml"/>
+
+<!-- <include url="skin/vtourskin_design_ultra_light.xml" /> -->
+
+
+<!-- <include url="skin/vtourskin_design_117.xml" /> -->
+
+
+<!-- <include url="skin/vtourskin_design_117round.xml" /> -->
+
+
+<!-- <include url="skin/vtourskin_design_black.xml" /> -->
+
+
+<!-- startup action - load the first scene -->
+
+
+<action autorun="onstart" name="startup">if(startscene === null OR !scene[get(startscene)], copy(startscene,scene[0].name); );loadscene(get(startscene), null, MERGE);if(startactions !== null, startactions() ); </action>
+
+
+-<scene title="Panoramic" name="scene_Panoramic" heading="" lng="" lat="" thumburl="panos/Panoramic.tiles/thumb.jpg" onstart="">
+
+<view limitview="auto" fovmax="140" fovmin="70" maxpixelzoom="2.0" fov="120" fovtype="MFOV" vlookat="0" hlookat="0"/>
+
+<preview url="panos/Panoramic.tiles/preview.jpg"/>
+
+
+-<image>
+
+<cube url="panos/Panoramic.tiles/pano_%s.jpg"/>
+
+<cube url="panos/Panoramic.tiles/mobile/pano_%s.jpg" devices="mobile"/>
+
+</image>
+
+<!-- place your scene hotspots here -->
+
+
+</scene>
+
+</krpano>
