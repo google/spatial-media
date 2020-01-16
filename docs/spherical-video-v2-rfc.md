@@ -53,6 +53,7 @@ aligned(8) class Stereoscopic3D extends FullBox(‘st3d’, 0, 0) {
 |   `1`   | **Stereoscopic Top-Bottom**: Indicates the video frame contains a stereoscopic view storing the left eye on top half of the frame and right eye at the bottom half of the frame.|
 |   `2`   | **Stereoscopic Left-Right**: Indicates the video frame contains a stereoscopic view storing the left eye on left half of the frame and right eye on the right half of the frame.|
 |   `3`   | **Stereoscopic Stereo-Custom**: Indicates the video frame contains a stereoscopic view storing left and right eyes in the frame, but its layout is application dependent, and needs to be determined elsewhere. For example, this must be used with a mesh projection that contains a mesh for each eye. In this case the layout information is stored in the meshes instead of explicitly described here.|
+|   `4`   | **Stereoscopic Right-Left**: Indicates the video frame contains a stereoscopic view storing the right eye on the left half of the frame and the left eye on the right half of the frame.|
 
 #### Spherical Video Box (sv3d)
 ##### Definition
