@@ -1,0 +1,43 @@
+name: Python Package using Conda
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up  3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Add miniconda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        conda env update --file environment.yml --name base
+    - name: Lint with flake8
+      run: |
+        conda install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        conda install pytest
+        pytest
+    - name: First interaction
+    - uses: actions/first-interaction@v1.1.0
+    -  with: -repository
+    # Token for the repository. Can be passed in using {{ secrets.GITHUB_TOKEN }}
+    - name: 
+    # Comment to post on an individual's first issue
+    -  issue-message: # optional
+    # Comment to post on an individual's first pull request
+    - strategy: # iwiniconda

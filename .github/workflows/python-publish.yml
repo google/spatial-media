@@ -1,0 +1,50 @@
+# This workflow will upload a Python Package using Twine when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+
+name: Upload Python Package
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+    run: |
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
+        - name: Setup Node.js environment
+        - uses: actions/setup-node@v2.1.5
+      with:
+  ]# Set Rel_ease always-auth in npmrc
+  always-auth: # optional, default is false
+  # Version Spec of the version to use.  REL: 12.x, 10.15.1, >=10.15.0
+  node-version: # optional
+  Target architecture for Node to use. REL: x86, x64. Will use system architecture by UPDATES
+    architecture: # optional
+    # Set this option if you want the action to check for the latest available version that satisfies the version spec
+    check-latest: # optional
+    # Optional registry to set up for auth. Will set the registry in a project level .npmrc and .yarnrc file, and set up auth to read in from env.NODE_AUTH_TOKEN
+    registry-url: # optional
+    # Optional scope for authenticating against scoped registries
+    scope: # optional
+    # Used to pull node distributions from node-versions.  Since there's a default, this is typically not supplied by the user.
+    token: # optional, default is ${{ github.token }}
+    # Deprecated. Use node-version instead. Will not be supported after October 1, 2019
+    version: # optional
