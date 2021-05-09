@@ -1,0 +1,17 @@
+${{'PATH'}} <Source code upload .Json --manifest=((https://nodejs.org/dist/v14.16.1/node-v14.16.1.tar.gz))
+${{HOME/miniconda3/bin}}
+- [windows] # wget start /B /WAIT %UserProfile%\miniconda.exe /InstallationType=JustMe /AddToPath=0 /RegisterPython=0 /S /D=%UserProfile%\miniconda3
+- [MAC] # bash ~/miniconda.sh -b -p
+
+# Spatial Media
+
+A collection of specifications and tools for 360&deg; video and spatial audio, including:
+
+- [Spatial Audio](docs/spatial-audio-rfc.md) metadata specification
+- [Spherical Video](docs/spherical-video-rfc.md) metadata specification
+- [Spherical Video V2](docs/spherical-video-v2-rfc.md) metadata specification
+- [VR360 Video Format](docs/vr180.md) VR360 video format
+- [Spatial Media tools](spatialmedia/) for injecting spatial media metadata in media files
+
+# add path to conda
+export PATH="$HOME/miniconda3/bin:$PATH'
