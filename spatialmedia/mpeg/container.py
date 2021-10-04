@@ -92,7 +92,7 @@ def load(fh, position, end):
 
 def load_multiple(fh, position=None, end=None):
     loaded = list()
-    while (position < end):
+    while (position + 4 < end):
         new_box = load(fh, position, end)
         if new_box is None:
             print("Error, failed to load box.")
