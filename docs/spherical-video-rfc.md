@@ -70,7 +70,6 @@ Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* box
 |CroppedAreaLeftPixels|Column where the left edge of the image was cropped from the full sized panorama|Integer|No|0| |
 |CroppedAreaTopPixels|Row where the top edge of the image was cropped from the full sized panorama|Integer|No|0| |
 
-<a name="StereoMode"\>
 #### Stereo Mode
 
 [SEI Frame Packing Arragement](http://www.itu.int/ITU-T/recommendations/rec.aspx?rec=10635) and the [StereoMode](http://www.matroska.org/technical/specs/index.html#StereoMode) tag for Matroska/WebM video files can be used to describe the left/right frame layout. To include non-h264 MPEG-4 files an additional StereoMode tag will override the native stereo configuration. The supported StereoMode values are shown below with the corresponding native values.
@@ -90,7 +89,6 @@ Cropping, initial view, and projection properties are shared across the left/rig
 |FullPanoWidthPixels   |Container Width. |Half Container Width. |Container Width.      |
 |FullPanoHeightPixels  |Container Height.|Container Height.     |Half Container Height.|
 
-<a name="InitialView"\>
 #### Initial View
 
 The default initial viewport is set such that the frame center occurs at the view center. A diagram of the rotation model for an equirectangular projection is shown below.
@@ -112,7 +110,6 @@ The default initial viewport is set such that the frame center occurs at the vie
     o  - the image center for a pitch of 45 and a heading of 90
     >  - the up vector for a rotation of 90 degrees.
 
-<a name="LocalMetadata"/a>
 ### Local Metadata
 Version 1 supports the following Local Metadata:
 
@@ -133,7 +130,7 @@ Metadata content will go into the [BlockAdditional](http://matroska.org/technica
 User data unregistered SEI message syntax from the ISO-14496-10:2005 (see D.1.6). This message is an SEI message of Payload Type 5.
 
 ### Specifications of Local Metadata Sampled at Intervals
-In this case, the metadata content not availble at frame-level accuracy, but rather sampled as a certain time interval.
+In this case, the metadata content not available at frame-level accuracy, but rather sampled as a certain time interval.
 
 #### WebM/Matroska
 Metadata content should be stored as a separate metadata track. The metadata track entry must have the following values for specified fields:
@@ -173,7 +170,7 @@ Header bits (1 to 32): flags indicating which metadata are present.
 
 Depending on which flags are set, the actual metadata will follow in the exact order of the flags.
 
-Each block of local metadata will be preceded by the length of that particular block of data. This will alow parsers to skip metadata blocks.
+Each block of local metadata will be preceded by the length of that particular block of data. This will allow parsers to skip metadata blocks.
 
 Example:
 

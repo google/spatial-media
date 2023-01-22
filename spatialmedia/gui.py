@@ -333,6 +333,7 @@ def report_callback_exception(self, *args):
 
 def main():
     root = tk.Tk()
+    root.tk.call('tk', 'scaling', 2.0)
     tk.report_callback_exception = report_callback_exception
     app = Application(master=root)
     app.mainloop()
