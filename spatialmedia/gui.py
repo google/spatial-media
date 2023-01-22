@@ -308,6 +308,7 @@ def report_callback_exception(self, *args):
 
 def main():
     root = Tk()
+    root.tk.call('tk', 'scaling', 2.0)
     Tk.report_callback_exception = report_callback_exception
     app = Application(master=root)
     app.mainloop()
