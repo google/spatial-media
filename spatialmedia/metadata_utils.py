@@ -279,7 +279,7 @@ def parse_spherical_xml(contents, console):
             return
 
     sphericalDictionary = dict()
-    for child in parsed_xml.getchildren():
+    for child in list(parsed_xml):
         if child.tag in SPHERICAL_TAGS.keys():
             console("\t\t" + SPHERICAL_TAGS[child.tag]
                     + " = " + child.text)
