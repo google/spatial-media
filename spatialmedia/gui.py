@@ -62,14 +62,17 @@ class Console():
 
 class Application(tk.Frame):
     def action_open(self):
-        """Triggers open file diaglog, reading a new file's metadata."""
-        tmp_in_file = filedialog.askopenfilename(**self.open_options)
-        if not tmp_in_file:
+        """Triggers open file dialog, reading new files' metadata."""
+        tmp_in_files = filedialog.askopenfilenames(**self.open_options)
+        if not tmp_in_files:
             return
-        self.in_file = tmp_in_file
-
-        self.set_message("Current 360 video: %s" % ntpath.basename(self.in_file))
-
+        
+        # Process first file to show in the UI
+        self.in_file = tmp_in_files[0]
+        self.all_files = tmp_in_files  # Store all selected files
+        
+        self.set_message(f"Selected {len(tmp_in_files)} files. Current file: {ntpath.basename(self.in_file)}")
+        
         console = Console()
         parsed_metadata = metadata_utils.parse_metadata(self.in_file, console.append)
 
@@ -125,6 +128,7 @@ class Application(tk.Frame):
         self.update_state()
 
     def action_inject_delay(self):
+        """Process all selected files for injection."""
         stereo = None
         if self.var_3d.get():
             stereo = "top-bottom"
@@ -139,28 +143,43 @@ class Application(tk.Frame):
             )
 
         console = Console()
-        metadata_utils.inject_metadata(
-            self.in_file, self.save_file, metadata, console.append
-        )
+        success_count = 0
+        
+        for input_file in self.all_files:
+            split_filename = os.path.splitext(ntpath.basename(input_file))
+            base_filename = split_filename[0]
+            extension = split_filename[1]
+            
+            # Create output filename for each file
+            output_file = os.path.join(
+                os.path.dirname(self.save_file),
+                f"{base_filename}_injected{extension}"
+            )
+            
+            try:
+                metadata_utils.inject_metadata(
+                    input_file, output_file, metadata, console.append
+                )
+                success_count += 1
+            except Exception as e:
+                console.append(f"Error processing {ntpath.basename(input_file)}: {str(e)}")
+        
         self.set_message(
-            "Successfully saved file to %s\n" % ntpath.basename(self.save_file)
+            f"Successfully processed {success_count} out of {len(self.all_files)} files"
         )
         self.button_open.configure(state="normal")
         self.update_state()
 
     def action_inject(self):
-        """Inject metadata into a new save file."""
-        split_filename = os.path.splitext(ntpath.basename(self.in_file))
-        base_filename = split_filename[0]
-        extension = split_filename[1]
-        self.save_options["initialfile"] = base_filename + "_injected" + extension
-        self.save_file = filedialog.asksaveasfilename(**self.save_options)
+        """Inject metadata into new save files."""
+        # Ask for output directory instead of single file
+        self.save_file = filedialog.askdirectory(title="Select Output Directory")
         if not self.save_file:
             return
 
-        self.set_message("Saving file to %s" % ntpath.basename(self.save_file))
+        self.set_message(f"Processing {len(self.all_files)} files...")
 
-        # Launch injection on a separate thread after disabling buttons.
+        # Launch injection on a separate thread after disabling buttons
         self.disable_state()
         self.master.after(100, self.action_inject_delay)
 
@@ -310,6 +329,7 @@ class Application(tk.Frame):
         self.title = "Spatial Media Metadata Injector"
         self.open_options = {}
         self.open_options["filetypes"] = [("Videos", ("*.mov", "*.mp4"))]
+        self.open_options["multiple"] = True  # Enable multiple file selection
 
         self.save_options = {}
 
@@ -318,6 +338,7 @@ class Application(tk.Frame):
         self.pack()
 
         self.in_file = None
+        self.all_files = []  # Store all selected files
         self.disable_state()
         self.enable_state()
         master.attributes("-topmost", True)
