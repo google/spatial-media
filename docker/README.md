@@ -6,7 +6,7 @@ To build this image clone this repository to a machine with Docker installed and
 
 `docker build -t spatialmedia/tools .`
 
-To run this image newly built image in Docker use the following command:
+To run this newly built image in Docker use the following command:
 
 **Note:** Map an OS path in the first section of the -v flag to /app/data within the container and ensure that it has read/write access.
 
