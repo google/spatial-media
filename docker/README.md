@@ -2,7 +2,7 @@ This is the first attempt at taking a different path for the Spatial Media Tools
 
 This should remove any OS specific requirements for Python TK that are tied to different Python versions in use. It will be based on the latest available Python/Alpine image at the time of release.
 
-To build this image clone this repository to a machine with Docker installed and run the following:
+To build this image clone this repository to a machine with Docker installed and run the following from this ./docker folder where the Dockerfile exists:
 
 `docker build -t spatialmedia/tools .`
 
