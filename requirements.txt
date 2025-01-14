@@ -1,0 +1,4 @@
+PyInstaller
+tk
+pillow
+packaging
