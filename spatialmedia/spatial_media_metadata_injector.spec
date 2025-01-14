@@ -31,5 +31,16 @@ if sys.platform == 'darwin':
     app = BUNDLE(exe,
                  name='Spatial Media Metadata Injector.app',
                  icon=None,
-                 bundle_identifier=None,
+                 bundle_identifier='com.google.spatialmedia',
                  info_plist={'NSHighResolutionCapable': 'True'})
+if sys.platform.startswith('linux'):
+    exe = EXE(pyz,
+              a.scripts,
+              a.binaries,
+              a.zipfiles,
+              a.datas,
+              name='Spatial Media Metadata Injector',
+              debug=False,
+              strip=False,
+              upx=True,
+              console=False)
