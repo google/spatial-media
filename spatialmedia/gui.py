@@ -151,10 +151,8 @@ class Application(tk.Frame):
             extension = split_filename[1]
             
             # Create output filename for each file
-            # Fix: Use self.save_file directly as it's already the correct directory path
             output_file = os.path.join(
-                #os.path.dirname(self.save_file), # Remove os.path.dirname() call to fix directory path issue
-                self.save_file,  # Remove os.path.dirname() call
+                os.path.dirname(self.save_file),
                 f"{base_filename}_injected{extension}"
             )
             
