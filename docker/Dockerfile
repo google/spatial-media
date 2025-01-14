@@ -7,23 +7,20 @@ ENV PATH="${PATH}:/spatialmediatools/app"
 
 RUN apk update && \
     apk upgrade && \
-    apk --no-cache add --virtual build-dependencies wget unzip ca-certificates 
+    apk --no-cache add --virtual wget unzip ca-certificates 
 
-# Create and activate virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy requirements and install dependencies
 COPY ./requirements.txt /spatialmediatools/app/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir gunicorn
+RUN python -m venv spatialmediatools 
+RUN source spatialmediatools/bin/activate
+RUN spatialmediatools/bin/python -m pip install --upgrade pip
+RUN spatialmediatools/bin/python -m pip install -r requirements.txt
+RUN spatialmediatools/bin/python -m pip install -I gunicorn
 
-# Create startup script
-RUN echo '#!/bin/sh' > /spatialmediatools/app/startup.sh && \
-    echo 'mkdir -p /spatialmediatools/app/data' >> /spatialmediatools/app/startup.sh && \
-    echo 'exec tail -f /dev/null' >> /spatialmediatools/app/startup.sh && \
-    chmod +x /spatialmediatools/app/startup.sh
+COPY ./app.py /spatialmediatools/app
+COPY ./wsgi.py /spatialmediatools/app
+COPY ./startup.sh /spatialmediatools/app 
+RUN chmod 777 /spatialmediatools/app/startup.sh
+RUN mkdir ./data
 
 ##############################################################################
 # Download and extract Spatial Metadata Tools Code
@@ -31,24 +28,18 @@ RUN echo '#!/bin/sh' > /spatialmediatools/app/startup.sh && \
 ENV GIT_URL="https://github.com/google/spatial-media/archive/refs/heads/master.zip"
 ENV APP_DIR="/spatialmediatools/app"
 
-RUN wget --no-check-certificate -O spatialmediatools.zip $GIT_URL && \
-    unzip $APP_DIR/spatialmediatools.zip && \
-    rm $APP_DIR/spatialmediatools.zip
+RUN wget --no-check-certificate -O spatialmediatools.zip $GIT_URL;
+RUN unzip $APP_DIR/spatialmediatools.zip;
 
 ##############################################################################
 # Clean up of unneeded packages and download
 ##############################################################################
-RUN rm -rf /var/cache/apk/* && \
-    apk del wget unzip ca-certificates
+RUN rm -rf /var/cache/apk/*;
+RUN rm $APP_DIR/spatialmediatools.zip 
+RUN apk del wget unzip ca-certificates;
 
 ##############################################################################
-# Set up entry point
+# Run app.py
 ##############################################################################
-COPY ./app.py /spatialmediatools/app
-COPY ./wsgi.py /spatialmediatools/app
-
-# Ensure data directory exists
-RUN mkdir -p /spatialmediatools/app/data
-
-# Use the startup script as entrypoint
-ENTRYPOINT ["/spatialmediatools/app/startup.sh"]
+#CMD [ "spatialmediatools/bin/python", "app.py" ]
+ENTRYPOINT [ "/spatialmediatools/app/startup.sh" ]
