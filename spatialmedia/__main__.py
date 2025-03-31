@@ -57,6 +57,13 @@ def main():
                            choices=["none", "top-bottom", "left-right"],
                            default="none",
                            help="stereo mode (none | top-bottom | left-right)")
+  video_group.add_argument("-p",
+                           "--projection",
+                           action="store",
+                           dest="projection",
+                           choices=["none", "equirectangular"],
+                           default="equirectangular",
+                           help="projection (none | equirectangular)")
   video_group.add_argument(
       "-c",
       "--crop",
@@ -85,7 +92,8 @@ def main():
       return
 
     metadata = metadata_utils.Metadata()
-    metadata.video = metadata_utils.generate_spherical_xml(args.stereo_mode,
+    metadata.video = metadata_utils.generate_spherical_xml(args.projection,
+                                                           args.stereo_mode,
                                                            args.crop)
 
     if args.spatial_audio:

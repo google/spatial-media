@@ -49,6 +49,14 @@ SPHERICAL_XML_CONTENTS = \
     "</GSpherical:StitchingSoftware>"\
     "<GSpherical:ProjectionType>equirectangular</GSpherical:ProjectionType>"
 
+NOT_SPHERICAL_XML_CONTENTS = \
+    "<GSpherical:Spherical>false</GSpherical:Spherical>"\
+    "<GSpherical:Stitched>false</GSpherical:Stitched>"\
+    "<GSpherical:StitchingSoftware>"\
+    "Spherical Metadata Tool"\
+    "</GSpherical:StitchingSoftware>"\
+    "<GSpherical:ProjectionType>rectangular</GSpherical:ProjectionType>"
+
 SPHERICAL_XML_CONTENTS_TOP_BOTTOM = \
     "<GSpherical:StereoMode>top-bottom</GSpherical:StereoMode>"
 SPHERICAL_XML_CONTENTS_LEFT_RIGHT = \
@@ -175,6 +183,7 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
 
     mpeg4_file.resize()
     return True
+
 
 def mpeg4_add_spatial_audio(mpeg4_file, in_fh, audio_metadata, console):
     """Adds spatial audio metadata to the first audio track of the input
@@ -433,7 +442,7 @@ def inject_metadata(src, dest, metadata, console):
     console("Unknown file type")
 
 
-def generate_spherical_xml(stereo=None, crop=None):
+def generate_spherical_xml(projection="equiretangular", stereo=None, crop=None):
     # Configure inject xml.
     additional_xml = ""
     if stereo == "top-bottom":
@@ -499,7 +508,8 @@ def generate_spherical_xml(stereo=None, crop=None):
                 cropped_offset_left_pixels, cropped_offset_top_pixels)
 
     spherical_xml = (SPHERICAL_XML_HEADER +
-                     SPHERICAL_XML_CONTENTS +
+                     (SPHERICAL_XML_CONTENTS if projection == "equirectangular"
+                      else NOT_SPHERICAL_XML_CONTENTS) +
                      additional_xml +
                      SPHERICAL_XML_FOOTER)
     return spherical_xml
