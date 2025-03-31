@@ -48,6 +48,12 @@ def main():
       help=
       "injects spatial media metadata into the first file specified (.mp4 or "
       ".mov) and saves the result to the second file specified")
+  parser.add_argument(
+      "-2",
+      "--v2",
+      action="store_true",
+      help=
+      "Uses v2 of the video metadata spec")
   video_group = parser.add_argument_group("Spherical Video")
   video_group.add_argument("-s",
                            "--stereo",
@@ -91,10 +97,13 @@ def main():
       console("Injecting metadata requires both an input file and output file.")
       return
 
-    metadata = metadata_utils.Metadata()
-    metadata.video = metadata_utils.generate_spherical_xml(args.projection,
-                                                           args.stereo_mode,
-                                                           args.crop)
+    metadata = metadata_utils.Metadata(args.projection, args.stereo_mode)
+    if not args.v2:
+      metadata.projection = None
+      metadata.stereo_mode = None
+      metadata.video = metadata_utils.generate_spherical_xml(args.projection,
+                                                             args.stereo_mode,
+                                                             args.crop)
 
     if args.spatial_audio:
       parsed_metadata = metadata_utils.parse_metadata(args.file[0], console)
@@ -110,7 +119,7 @@ def main():
                   "spatial audio format." % (parsed_metadata.num_audio_channels))
           return
 
-    if metadata.video:
+    if metadata.video or metadata.projection or metadata.stereo_mode:
       metadata_utils.inject_metadata(args.file[0], args.file[1], metadata,
                                      console)
     else:

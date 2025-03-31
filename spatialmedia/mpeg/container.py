@@ -25,6 +25,7 @@ import struct
 from spatialmedia.mpeg import box
 from spatialmedia.mpeg import constants
 from spatialmedia.mpeg import sa3d
+from spatialmedia.mpeg import sv3d
 
 def load(fh, position, end):
     if position is None:
@@ -34,7 +35,6 @@ def load(fh, position, end):
     header_size = 8
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
-
     is_box = name not in constants.CONTAINERS_LIST
     # Handle the mp4a decompressor setting (wave -> mp4a).
     if name == constants.TAG_MP4A and size == 12:
@@ -42,6 +42,8 @@ def load(fh, position, end):
     if is_box:
         if name == constants.TAG_SA3D:
             return sa3d.load(fh, position, end)
+        if sv3d.is_supported_box_name(name):
+            return sv3d.load(fh, position, end)
         return box.load(fh, position, end)
 
     if size == 1:
@@ -73,6 +75,17 @@ def load(fh, position, end):
             padding = 64
         else:
             print("Unsupported sample description version:",
+                  sample_description_version)
+    if name in constants.VIDEO_SAMPLE_DESCRIPTIONS:
+        current_pos = fh.tell()
+        fh.seek(current_pos + 8)
+        sample_description_version = struct.unpack(">h", fh.read(2))[0]
+        fh.seek(current_pos)
+
+        if sample_description_version == 0:
+            padding = 78
+        else:
+            print("Unsupported video sample description version:",
                   sample_description_version)
 
     new_box = Container()
@@ -106,10 +119,10 @@ def load_multiple(fh, position=None, end=None):
 class Container(box.Box):
     """MPEG4 container box contents / behaviour."""
 
-    def __init__(self, padding=0):
+    def __init__(self, padding=0, header_size=0):
         self.name = ""
         self.position = 0
-        self.header_size = 0
+        self.header_size = header_size
         self.content_size = 0
         self.contents = list()
         self.padding = padding
@@ -121,6 +134,10 @@ class Container(box.Box):
             if isinstance(element, Container):
                 element.resize()
             self.content_size += element.size()
+
+    def print_box(self, console):
+        for child in self.contents:
+            child.print_box(console)
 
     def print_structure(self, indent=""):
         """Prints the box structure and recurses on contents."""

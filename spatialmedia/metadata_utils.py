@@ -95,7 +95,9 @@ SPHERICAL_TAGS_LIST = [
 ]
 
 class Metadata(object):
-    def __init__(self):
+    def __init__(self, projection=None, stereo_mode=None):
+        self.projection = None if (not projection or projection == "none") else projection
+        self.stereo_mode = None if (not stereo_mode or stereo_mode == "none") else stereo_mode
         self.video = None
         self.audio = None
 
@@ -152,7 +154,7 @@ def spherical_uuid(metadata):
     return uuid_leaf
 
 
-def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
+def mpeg4_add_spherical_xml_v1(mpeg4_file, in_fh, metadata):
     """Adds a spherical uuid box to an mpeg4 file for all video tracks.
 
     Args:
@@ -182,6 +184,72 @@ def mpeg4_add_spherical(mpeg4_file, in_fh, metadata):
                     break
 
     mpeg4_file.resize()
+    return True
+
+def mpeg4_add_spherical_v2(mpeg4_file, in_fh, projection, stereo_mode):
+    for element in mpeg4_file.moov_box.contents:
+        if element.name == mpeg.constants.TAG_TRAK:
+            for sub_element in element.contents:
+                if sub_element.name != mpeg.constants.TAG_MDIA:
+                    continue
+                for mdia_sub_element in sub_element.contents:
+                    if mdia_sub_element.name != mpeg.constants.TAG_HDLR:
+                        continue
+                    position = mdia_sub_element.content_start() + 8
+                    in_fh.seek(position)
+                    if in_fh.read(4) == mpeg.constants.TAG_VIDE:
+                        ret = inject_spatial_video_v2_atoms(
+                            in_fh, sub_element, projection, stereo_mode)
+                        mpeg4_file.resize()
+                        return ret
+
+
+def inject_spatial_video_v2_atoms(in_fh, video_media_atom, projection, stereo_mode):
+    """Adds spherical v2 boxes to an mpeg4 file for all video tracks.
+
+    Args:
+      mpeg4_file: mpeg4, Mpeg4 file structure to add metadata.
+      in_fh: file handle, Source for uncached file contents.
+      metadata: string, xml metadata to inject into spherical tag.
+    """
+    for atom in video_media_atom.contents:
+        if atom.name != mpeg.constants.TAG_MINF:
+            continue
+        for element in atom.contents:
+            if element.name != mpeg.constants.TAG_STBL:
+                continue
+            for sub_element in element.contents:
+                if sub_element.name != mpeg.constants.TAG_STSD:
+                    continue
+                for sample_description in sub_element.contents:
+                    if sample_description.name in\
+                            mpeg.constants.VIDEO_SAMPLE_DESCRIPTIONS:
+                        in_fh.seek(sample_description.position +
+                                   sample_description.header_size + 16)
+                        # Should remove any existing boxes...
+                        if stereo_mode:
+                            st3d_atom = mpeg.sv3d.ST3DBox.create()
+                            st3d_atom.name = mpeg.constants.TAG_ST3D
+                            st3d_atom.set_stereo_mode_from_string(stereo_mode)
+
+                            sample_description.remove(st3d_atom.name)
+                            sample_description.add(st3d_atom)
+
+                        if projection:
+                            proj_atom = mpeg.container.Container(header_size=8)
+                            proj_atom.name = mpeg.constants.TAG_PROJ
+
+                            proj_atom.add(mpeg.sv3d.PRHDBox.create())
+                            proj_atom.add(mpeg.sv3d.EQUIBox.create())
+
+                            sv3d_atom = mpeg.container.Container(header_size=8)
+                            sv3d_atom.name = mpeg.constants.TAG_SV3D
+
+                            sv3d_atom.add(proj_atom)
+
+                            sample_description.remove(sv3d_atom.name)
+                            sample_description.add(sv3d_atom)
+
     return True
 
 
@@ -355,6 +423,21 @@ def parse_spherical_mpeg4(mpeg4_file, fh, console):
                                         if sa3d_elem.name == mpeg.constants.TAG_SA3D:
                                             sa3d_elem.print_box(console)
                                             metadata.audio = sa3d_elem
+
+                                for sv3d_container_elem in stsd_elem.contents:
+                                    if sv3d_container_elem.name not in \
+                                            mpeg.constants.VIDEO_SAMPLE_DESCRIPTIONS:
+                                        continue
+                                    for sub_elem in sv3d_container_elem.contents:
+                                        if sub_elem.name == mpeg.constants.TAG_SV3D:
+                                            console("\t\tSV3D {")
+                                            sub_elem.print_box(console)
+                                            console("\t\t}")
+                                        elif sub_elem.name == mpeg.constants.TAG_ST3D:
+                                            console("\t\tST3D {")
+                                            sub_elem.print_box(console)
+                                            console("\t\t} ")
+
     return metadata
 
 def parse_mpeg4(input_file, console):
@@ -378,8 +461,12 @@ def inject_mpeg4(input_file, output_file, metadata, console):
         if mpeg4_file is None:
             console("Error file could not be opened.")
 
-        if not mpeg4_add_spherical(mpeg4_file, in_fh, metadata.video):
+        if metadata.video and not mpeg4_add_spherical_xml_v1(mpeg4_file, in_fh, metadata.video):
             console("Error failed to insert spherical data")
+
+        if ((metadata.projection or metadata.stereo_mode)
+            and not mpeg4_add_spherical_v2(mpeg4_file, in_fh, metadata.projection, metadata.stereo_mode)):
+            console("Error failed to insert spherical data v2")
 
         if metadata.audio:
             if not mpeg4_add_audio_metadata(
