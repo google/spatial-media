@@ -75,6 +75,11 @@ TAG_AV01 = b"av01"
 TAV_HEV1 = b"hev1"
 TAG_DVH1 = b"dvh1"
 TAG_APCN = b"apcn"
+TAG_APCH = b"apch"
+TAG_APCS = b"apcs"
+TAG_APCO = b"apco"
+TAG_AP4H = b"ap4h"
+TAG_AP4X = b"ap4x"
 
 SOUND_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_NONE,
@@ -100,6 +105,11 @@ VIDEO_SAMPLE_DESCRIPTIONS = frozenset([
     TAV_HEV1,
     TAG_DVH1,
     TAG_APCN,
+    TAG_APCH,
+    TAG_APCS,
+    TAG_APCO,
+    TAG_AP4H,
+    TAG_AP4X
     ])
 
 CONTAINERS_LIST = frozenset([
