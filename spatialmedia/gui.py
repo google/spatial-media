@@ -357,9 +357,13 @@ def report_callback_exception(self, *args):
 def main():
     root = tk.Tk()
     root.tk.call('tk', 'scaling', 2.0)
+    root.withdraw()
+    app_window = tk.Toplevel(root, class_="Spatial Media Metadata Injector")
+    app_window.resizable(False, False)
+    app_window.protocol("WM_DELETE_WINDOW", root.destroy)
     tk.report_callback_exception = report_callback_exception
-    app = Application(master=root)
-    app.mainloop()
+    Application(master=app_window)
+    root.mainloop()
 
 
 if __name__ == "__main__":
