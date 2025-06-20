@@ -112,7 +112,7 @@ SPHERICAL_TAGS = dict()
 for tag in SPHERICAL_TAGS_LIST:
     SPHERICAL_TAGS[SPHERICAL_PREFIX + tag] = tag
 
-integer_regex_group = "(\d+)"
+integer_regex_group = r"(\d+)"
 crop_regex = "^{0}$".format(":".join([integer_regex_group] * 6))
 
 MAX_SUPPORTED_AMBIX_ORDER = 1
