@@ -34,7 +34,7 @@ def console(contents):
   print(contents)
 
 
-def main():
+def main(main_args):
   """Main function for printing and injecting spatial media metadata."""
 
   parser = argparse.ArgumentParser(
@@ -90,7 +90,7 @@ def main():
       "ordering and SN3D normalization")
   parser.add_argument("file", nargs="+", help="input/output files")
 
-  args = parser.parse_args()
+  args = parser.parse_args(main_args)
 
   if args.inject:
     if len(args.file) != 2:
@@ -141,4 +141,4 @@ def main():
 
 
 if __name__ == "__main__":
-  main()
+  main(sys.argv[1:])
