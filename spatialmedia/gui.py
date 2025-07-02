@@ -23,6 +23,8 @@ GUI application for examining/injecting spatial media metadata in MP4/MOV files.
 import ntpath
 import os
 import sys
+import platform
+import ctypes
 import traceback
 
 try:
@@ -49,6 +51,15 @@ from spatialmedia import metadata_utils
 
 SPATIAL_AUDIO_LABEL = "My video has spatial audio (ambiX ACN/SN3D format)"
 HEAD_LOCKED_STEREO_LABEL = "with head-locked stereo"
+
+
+def make_dpi_aware():
+    if platform.system() == "Windows":
+        try:
+            ctypes.windll.shcore.SetProcessDpiAwareness(True)
+        except AttributeError:
+            print("Could not set DPI awareness.")
+make_dpi_aware()
 
 
 class Console():
