@@ -72,7 +72,8 @@ TAG_OPUS = b"Opus"
 TAG_AVC1 = b"avc1"
 TAG_VP09 = b"vp09"
 TAG_AV01 = b"av01"
-TAV_HEV1 = b"hev1"
+TAG_HEV1 = b"hev1"
+TAG_HVC1 = b"hvc1"
 TAG_DVH1 = b"dvh1"
 TAG_APCN = b"apcn"
 TAG_APCH = b"apch"
@@ -102,7 +103,8 @@ VIDEO_SAMPLE_DESCRIPTIONS = frozenset([
     TAG_AVC1,
     TAG_VP09,
     TAG_AV01,
-    TAV_HEV1,
+    TAG_HEV1,
+    TAG_HVC1,
     TAG_DVH1,
     TAG_APCN,
     TAG_APCH,
