@@ -82,10 +82,9 @@ def load(fh, position, end):
         sample_description_version = struct.unpack(">h", fh.read(2))[0]
         fh.seek(current_pos)
 
-        if sample_description_version == 0:
-            padding = 78
-        else:
-            print("Unsupported video sample description version:",
+        padding = 78
+        if sample_description_version > 0:
+            print("Warning: video sample description version > 0:",
                   sample_description_version)
 
     new_box = Container()
