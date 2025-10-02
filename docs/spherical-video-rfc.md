@@ -72,7 +72,7 @@ Spherical video metadata is stored in a uniquely-identified *moov.trak.uuid* box
 
 #### Stereo Mode
 
-[SEI Frame Packing Arragement](http://www.itu.int/ITU-T/recommendations/rec.aspx?rec=10635) and the [StereoMode](http://www.matroska.org/technical/specs/index.html#StereoMode) tag for Matroska/WebM video files can be used to describe the left/right frame layout. To include non-h264 MPEG-4 files an additional StereoMode tag will override the native stereo configuration. The supported StereoMode values are shown below with the corresponding native values.
+[SEI Frame Packing Arrangement](http://www.itu.int/ITU-T/recommendations/rec.aspx?rec=10635) and the [StereoMode](http://www.matroska.org/technical/specs/index.html#StereoMode) tag for Matroska/WebM video files can be used to describe the left/right frame layout. To include non-h264 MPEG-4 files an additional StereoMode tag will override the native stereo configuration. The supported StereoMode values are shown below with the corresponding native values.
 
 | **Name** | **Description** |Equivalent MKV Value | Equivalent h264 SEI FPI |
 |----------|-----------------|---------------------|-------------------------|
