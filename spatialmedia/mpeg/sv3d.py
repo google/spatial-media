@@ -115,19 +115,19 @@ class PRHDBox(box.Box):
 
 
 class EQUIBox(box.Box):
-    def __init__(self):
+    def __init__(self, bounds=None):
         box.Box.__init__(self)
         self.name = constants.TAG_EQUI
         self.header_size = 8
-        self.bounds_top = 0
-        self.bounds_bottom = 0
-        self.bounds_left = 0
-        self.bounds_right = 0
+        self.bounds_top = bounds[0] if bounds else 0
+        self.bounds_bottom = bounds[1] if bounds else 0
+        self.bounds_left = bounds[2] if bounds else 0
+        self.bounds_right = bounds[3] if bounds else 0
         self.content_size = 20
 
     @staticmethod
-    def create():
-        return EQUIBox()
+    def create(bounds=None):
+        return EQUIBox(bounds)
 
     def print_box(self, console):
         """ Prints the contents of this box to console."""

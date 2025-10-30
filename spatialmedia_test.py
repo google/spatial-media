@@ -70,6 +70,26 @@ class TestAdd(unittest.TestCase):
         self.assertTrue(contents.find('PRHD') >= 0)
         self.assertTrue(contents.find('EQUI') >= 0)
         self.assertFalse(contents.find('ST3D') >= 0)
+        self.assertTrue(contents.find('Bounds Top: 0') >= 0)
+        self.assertTrue(contents.find('Bounds Bottom: 0') >= 0)
+        self.assertTrue(contents.find('Bounds Left: 0') >= 0)
+        self.assertTrue(contents.find('Bounds Right: 0') >= 0)
+
+    def test_inject_v2_equirect_mono_with_bounds(self):
+        contents = self.inject_metadata(['-i',
+                                         '--v2',
+                                         '--bounds', '0x1:-2:0x7FFFFFFF:32',
+                                         '--projection', 'equirectangular',
+                                         'data/testsrc_320x240_h264.mp4',
+                                         f'{_OUTPUT_DIR}/equirect_mono.mp4'])
+        self.assertTrue(contents.find('SV3D') >= 0)
+        self.assertTrue(contents.find('PRHD') >= 0)
+        self.assertTrue(contents.find('EQUI') >= 0)
+        self.assertFalse(contents.find('ST3D') >= 0)
+        self.assertTrue(contents.find('Bounds Top: 1') >= 0)
+        self.assertTrue(contents.find('Bounds Bottom: 0') >= 0)
+        self.assertTrue(contents.find('Bounds Left: 2147483647') >= 0)
+        self.assertTrue(contents.find('Bounds Right: 32') >= 0)
 
     def test_inject_v2_equirect_mono_vp9(self):
         contents = self.inject_metadata(['-i',
