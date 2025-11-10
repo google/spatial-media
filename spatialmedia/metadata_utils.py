@@ -95,9 +95,14 @@ SPHERICAL_TAGS_LIST = [
 ]
 
 class Metadata(object):
-    def __init__(self, projection=None, stereo_mode=None):
+    def __init__(self, projection=None, stereo_mode=None, bounds=None):
         self.projection = None if (not projection or projection == "none") else projection
         self.stereo_mode = None if (not stereo_mode or stereo_mode == "none") else stereo_mode
+        if bounds:
+            bounds = [max(0, min(int(b, 0), 0xFFFFFFFF)) for b in bounds.split(":")]
+            if len(bounds) != 4:
+                print("Error: input bounds is incorrectly specified")
+        self.bounds = bounds
         self.video = None
         self.audio = None
 
@@ -186,7 +191,7 @@ def mpeg4_add_spherical_xml_v1(mpeg4_file, in_fh, metadata):
     mpeg4_file.resize()
     return True
 
-def mpeg4_add_spherical_v2(mpeg4_file, in_fh, projection, stereo_mode):
+def mpeg4_add_spherical_v2(mpeg4_file, in_fh, projection, stereo_mode, bounds):
     for element in mpeg4_file.moov_box.contents:
         if element.name == mpeg.constants.TAG_TRAK:
             for sub_element in element.contents:
@@ -199,18 +204,20 @@ def mpeg4_add_spherical_v2(mpeg4_file, in_fh, projection, stereo_mode):
                     in_fh.seek(position)
                     if in_fh.read(4) == mpeg.constants.TAG_VIDE:
                         ret = inject_spatial_video_v2_atoms(
-                            in_fh, sub_element, projection, stereo_mode)
+                            in_fh, sub_element, projection, stereo_mode, bounds)
                         mpeg4_file.resize()
                         return ret
 
 
-def inject_spatial_video_v2_atoms(in_fh, video_media_atom, projection, stereo_mode):
+def inject_spatial_video_v2_atoms(in_fh, video_media_atom, projection, stereo_mode, bounds):
     """Adds spherical v2 boxes to an mpeg4 file for all video tracks.
 
     Args:
-      mpeg4_file: mpeg4, Mpeg4 file structure to add metadata.
       in_fh: file handle, Source for uncached file contents.
-      metadata: string, xml metadata to inject into spherical tag.
+      video_media_atom: parent media atom.
+      projection: the projection type.
+      stereo_mode: stereo mode (if 3d), else none.
+      bounds: equirect bounds.
     """
     for atom in video_media_atom.contents:
         if atom.name != mpeg.constants.TAG_MINF:
@@ -240,7 +247,7 @@ def inject_spatial_video_v2_atoms(in_fh, video_media_atom, projection, stereo_mo
                             proj_atom.name = mpeg.constants.TAG_PROJ
 
                             proj_atom.add(mpeg.sv3d.PRHDBox.create())
-                            proj_atom.add(mpeg.sv3d.EQUIBox.create())
+                            proj_atom.add(mpeg.sv3d.EQUIBox.create(bounds=bounds))
 
                             sv3d_atom = mpeg.container.Container(header_size=8)
                             sv3d_atom.name = mpeg.constants.TAG_SV3D
@@ -465,7 +472,8 @@ def inject_mpeg4(input_file, output_file, metadata, console):
             console("Error failed to insert spherical data")
 
         if ((metadata.projection or metadata.stereo_mode)
-            and not mpeg4_add_spherical_v2(mpeg4_file, in_fh, metadata.projection, metadata.stereo_mode)):
+            and not mpeg4_add_spherical_v2(mpeg4_file, in_fh, metadata.projection,
+                                           metadata.stereo_mode, metadata.bounds)):
             console("Error failed to insert spherical data v2")
 
         if metadata.audio:

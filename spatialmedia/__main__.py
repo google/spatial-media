@@ -80,6 +80,16 @@ def main(main_args):
       " where w=CroppedAreaImageWidthPixels h=CroppedAreaImageHeightPixels "
       "f_w=FullPanoWidthPixels f_h=FullPanoHeightPixels "
       "x=CroppedAreaLeftPixels y=CroppedAreaTopPixels")
+  video_group.add_argument(
+      "-b",
+      "--bounds",
+      action="store",
+      default=None,
+      help=
+      "Equirect projection bounds for VR180. Must specify 4 integers "
+      "in the form of \"top:bottom:left:right\" where each integer is "
+      "a 0.32 fixed point value on the amount to crop from the corresponding "
+      "border")
   audio_group = parser.add_argument_group("Spatial Audio")
   audio_group.add_argument(
       "-a",
@@ -97,7 +107,7 @@ def main(main_args):
       console("Injecting metadata requires both an input file and output file.")
       return
 
-    metadata = metadata_utils.Metadata(args.projection, args.stereo_mode)
+    metadata = metadata_utils.Metadata(args.projection, args.stereo_mode, args.bounds)
     if not args.v2:
       metadata.projection = None
       metadata.stereo_mode = None
