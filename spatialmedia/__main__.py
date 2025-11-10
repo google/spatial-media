@@ -67,9 +67,9 @@ def main(main_args):
                            "--projection",
                            action="store",
                            dest="projection",
-                           choices=["none", "equirectangular"],
-                           default="equirectangular",
-                           help="projection (none | equirectangular)")
+                           choices=["none", "equirectangular","fisheye"],
+                           default="fisheye",
+                           help="projection (none | equirectangular | fisheye)")
   video_group.add_argument(
       "-c",
       "--crop",
