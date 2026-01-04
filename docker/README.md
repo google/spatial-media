@@ -1,33 +1,61 @@
-This is the first attempt at taking a different path for the Spatial Media Tools and creating a Docker container to use the [CLI commands](https://github.com/google/spatial-media/tree/master/spatialmedia#spatial-media-metadata-injector) to inject the Spatial Media metadata required for VR360/180 video with or without ambisonic audio.
+# Spatial Media Metadata Injector - Web Version
 
-This should remove any OS specific requirements for Python TK that are tied to different Python versions in use. It will be based on the latest available Python/Alpine image at the time of release.
+This is a modern Flask web application for injecting spatial media metadata, running inside Docker. It replaces the legacy Tkinter desktop application with a web browser interface.
 
-To build this image clone this repository to a machine with Docker installed and run the following from this ./docker folder where the Dockerfile exists:
+## Features
+- **Web Interface**: A clean, dark-mode web UI supporting drag-and-drop for multiple files.
+    - **Progress Bar**: Visual indicator for file upload status.
+- **Backend Refactor**: Logic ported from `gui.py` to a Python Flask application.
+    - **Persistence**: Fixed storage path to persist uploads and processed files.
+- **Docker Integration**: Builds directly from the local source code.
+- **Headerless**: No dependency on X11 or GUI libraries in the container.
 
-`docker build -t spatialmedia/tools .`
+## How to Run
 
-To run this newly built image in Docker use the following command:
+### Prerequisite
+Ensure you have Docker installed.
 
-**Note:** Map an OS path in the first section of the -v flag to /app/data within the container and ensure that it has read/write access.
+### 1. Build the Image
+Run this command from the **root of the repository** (the parent folder containing both `spatialmedia` and `docker` directories):
 
+```bash
+docker build -t spatial-media-web -f docker/Dockerfile .
 ```
-docker run -it \
--p 8888:5000 \
---net=bridge \
--h spatialmedia \
---name SpatialMediaTools \
--v /path/to/OS/folder:/spatialmediatools/app/data \
--d spatialmedia/tools
+
+### 2. Run the Container
+We use the `--name` flag to assign a consistent name to the container, and a volume map to persist data locally.
+
+**PowerShell example:**
+```powershell
+# Create a local folder for data (if it doesn't exist)
+mkdir data -ErrorAction SilentlyContinue
+
+# Run with volume mapping and container name
+docker run -p 5000:5000 --name spatial-media-metadata-injector -v ${PWD}\data:/app/uploads spatial-media-web
 ```
 
-Once the image is running copy a file to inject to the above OS path and run the following to connect to the running image:
+**Bash/Mac/Linux example:**
+```bash
+# Run with volume mapping and container name
+docker run -p 5000:5000 --name spatial-media-metadata-injector -v $(pwd)/data:/app/uploads spatial-media-web
+```
 
-`docker exec -it SpatialMediaTools sh`
+### 3. Use the Tool
+Open your browser and navigate to:
+[http://localhost:5000](http://localhost:5000)
 
-Change to the directory where the code was installed to in the image:
+1.  **Drag and drop** your .mp4 or .mov files.
+2.  Select the appropriate metadata options (360, 3D, Spatial Audio).
+3.  Click **Inject Metadata**.
+4.  Download the processed files via the web UI or find them in your local `data` folder.
 
-`cd spatial-media-master`
+## Troubleshooting
 
-Using the [CLI commands](https://github.com/google/spatial-media/tree/master/spatialmedia#spatial-media-metadata-injector) as a reference attempt to inject the spatial media metadata into the video file you copied to the above path. Example:
+### "File Not Found" Error
+Ensure you are using the volume mapping `-v ...:/app/uploads` as shown above. This ensures files are saved to a location that persists across the application lifecycle and is accessible to all worker threads.
 
-`python spatialmedia -i /spatialmediatools/app/data/<name_of_input_file.ext> /spatialmediatools/app/data/<name_of_output_file.ext>`
+### "Name already in use" Error
+If you try to run the command again and get an error that the name `spatial-media-metadata-injector` is already in use, you need to remove the old container first:
+```bash
+docker rm -f spatial-media-metadata-injector
+```
