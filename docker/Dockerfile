@@ -1,45 +1,31 @@
-##############################################################################
-# Install App
-##############################################################################
-FROM python:3.14.0a2-alpine3.20
-WORKDIR /spatialmediatools/app
-ENV PATH="${PATH}:/spatialmediatools/app"
+FROM python:3.11-slim
 
-RUN apk update && \
-    apk upgrade && \
-    apk --no-cache add --virtual wget unzip ca-certificates 
+WORKDIR /app
 
-COPY ./requirements.txt /spatialmediatools/app/requirements.txt
-RUN python -m venv spatialmediatools 
-RUN source spatialmediatools/bin/activate
-RUN spatialmediatools/bin/python -m pip install --upgrade pip
-RUN spatialmediatools/bin/python -m pip install -r requirements.txt
-RUN spatialmediatools/bin/python -m pip install -I gunicorn
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY ./app.py /spatialmediatools/app
-COPY ./wsgi.py /spatialmediatools/app
-COPY ./startup.sh /spatialmediatools/app 
-RUN chmod 777 /spatialmediatools/app/startup.sh
-RUN mkdir ./data
+# Copy Flask requirements from the docker folder
+COPY docker/requirements.txt .
 
-##############################################################################
-# Download and extract Spatial Metadata Tools Code
-##############################################################################
-ENV GIT_URL="https://github.com/google/spatial-media/archive/refs/heads/master.zip"
-ENV APP_DIR="/spatialmediatools/app"
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN wget --no-check-certificate -O spatialmediatools.zip $GIT_URL;
-RUN unzip $APP_DIR/spatialmediatools.zip;
+# Copy source code (Assuming build context is the repository root)
+COPY spatialmedia /app/spatialmedia
+COPY docker/app.py /app/app.py
+COPY docker/templates /app/templates
+COPY docker/static /app/static
+COPY docker/startup.sh /app/startup.sh
 
-##############################################################################
-# Clean up of unneeded packages and download
-##############################################################################
-RUN rm -rf /var/cache/apk/*;
-RUN rm $APP_DIR/spatialmediatools.zip 
-RUN apk del wget unzip ca-certificates;
+# Fix line endings (CRLF to LF) and make executable
+RUN sed -i 's/\r$//' /app/startup.sh && chmod +x /app/startup.sh
 
-##############################################################################
-# Run app.py
-##############################################################################
-#CMD [ "spatialmediatools/bin/python", "app.py" ]
-ENTRYPOINT [ "/spatialmediatools/app/startup.sh" ]
+# Create upload directory
+RUN mkdir -p /app/uploads && chmod 777 /app/uploads
+
+EXPOSE 5000
+
+CMD ["/app/startup.sh"]

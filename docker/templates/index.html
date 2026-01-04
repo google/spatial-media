@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spatial Media Metadata Injector</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Spatial Media Metadata Injector</h1>
+            <p>Inject metadata into your 360° videos and spatial audio files.</p>
+        </header>
+
+        <main>
+            <div id="drop-zone" class="drop-zone">
+                <span class="drop-zone__prompt">Drag & Drop files here or click to upload</span>
+                <input type="file" name="files[]" class="drop-zone__input" multiple>
+            </div>
+
+            <div id="progress-container" class="progress-container hidden">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+                <div id="progress-text" class="progress-text">0%</div>
+            </div>
+
+            <div id="file-list" class="file-list">
+                <!-- Uploaded files will appear here -->
+            </div>
+
+            <div class="controls disabled" id="controls">
+                <div class="options">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="spherical" checked>
+                        <span class="checkmark"></span>
+                        <span class="label-text">My video is spherical (360)</span>
+                    </label>
+
+                    <label class="checkbox-container indent" id="3d-option-container">
+                        <input type="checkbox" id="3d">
+                        <span class="checkmark"></span>
+                        <span class="label-text">My video is stereoscopic 3D (top/bottom layout)</span>
+                    </label>
+
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="spatial-audio">
+                        <span class="checkmark"></span>
+                        <span class="label-text">My video has spatial audio (ambiX ACN/SN3D format)</span>
+                    </label>
+                </div>
+
+                <div class="actions">
+                    <button id="inject-btn" class="btn primary">Inject Metadata</button>
+                    <div id="status-message" class="status-message"></div>
+                </div>
+            </div>
+
+            <div id="results-area" class="results-area hidden">
+                <h3>Results</h3>
+                <div id="download-links"></div>
+            </div>
+        </main>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
