@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright 2016 Google Inc. All rights reserved.
@@ -18,6 +18,7 @@
 """Spatial Media Metadata Injector GUI
 
 GUI application for examining/injecting spatial media metadata in MP4/MOV files.
+Optimized for Python 3 and macOS (including Apple Silicon M series).
 """
 
 import ntpath
@@ -27,21 +28,9 @@ import platform
 import ctypes
 import traceback
 
-try:
-    # python 3
-    import tkinter as tk
-    from tkinter import filedialog, messagebox, ttk
-    import configparser
-except ImportError:
-    # python 2
-    import Tkinter as tk
-    from tkFont import Font, nametofont
-    import tkMessageBox as messagebox
-    import tkFileDialog as filedialog
-    import ttk
-except ImportError:
-    print("Tkinter library is not available.")
-    exit(0)
+# Python 3 imports
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
 
 
 path = os.path.dirname(sys.modules[__name__].__file__)
@@ -67,7 +56,7 @@ class Console():
         self.log = []
 
     def append(self, text):
-        print(text.encode("utf-8"))
+        print(text)
         self.log.append(text)
 
 
@@ -367,7 +356,19 @@ def report_callback_exception(self, *args):
 
 def main():
     root = tk.Tk()
-    root.tk.call('tk', 'scaling', 2.0)
+    
+    # Platform-specific optimizations
+    if platform.system() == "Darwin":  # macOS
+        try:
+            # Optimize scaling for macOS (including Retina displays)
+            root.tk.call('tk', 'scaling', 1.4)
+            # Use native macOS appearance
+            root.tk.call('tk::mac::useThemedToplevel', 1)
+        except:
+            pass
+    else:
+        root.tk.call('tk', 'scaling', 2.0)
+    
     root.withdraw()
     app_window = tk.Toplevel(root, class_="Spatial Media Metadata Injector")
     app_window.resizable(False, False)
