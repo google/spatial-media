@@ -1,16 +1,6 @@
-# Build requirements for Spatial Media
-# Python 3.8+ required
+# Build requirements
+PyInstaller>=5.0
+pillow>=9.0
+packaging>=21.0
 
-# PyInstaller for building standalone executables
-PyInstaller>=6.0.0
-
-# Pillow for image processing
-pillow>=10.0.0
-
-# Packaging utilities
-packaging>=23.0
-
-# Note: tkinter is included with Python on most systems
-# On macOS, use: brew install python-tk@3.12
-# On Ubuntu/Debian, use: sudo apt-get install python3-tk
-# On Windows, it's included with Python installer
+# Note: tkinter comes with Python on macOS when installed via pyenv with tcl-tk@8

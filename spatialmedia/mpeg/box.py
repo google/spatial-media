@@ -125,6 +125,15 @@ class Box(object):
         size2 = self.content_size
         print("{0} {1} [{2}, {3}]".format(indent, self.name, size1, size2))
 
+    def print_box(self, console):
+        """Prints the box information to console.
+        
+        Args:
+            console: callable, function to print box information.
+        """
+        console("Box: {0} [header: {1}, content: {2}]".format(
+            self.name, self.header_size, self.content_size))
+
 
 def tag_copy(in_fh, out_fh, size):
     """Copies a block of data from in_fh to out_fh.

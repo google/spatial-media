@@ -43,20 +43,27 @@ HEAD_LOCKED_STEREO_LABEL = "with head-locked stereo"
 
 
 def make_dpi_aware():
+    """Configure DPI awareness for high-resolution displays."""
     if platform.system() == "Windows":
         try:
             ctypes.windll.shcore.SetProcessDpiAwareness(True)
         except AttributeError:
             print("Could not set DPI awareness.")
+    elif platform.system() == "Darwin":  # macOS
+        # macOS handles DPI automatically, but we can optimize for Retina displays
+        pass
+
 make_dpi_aware()
 
 
 class Console():
+    """Console for logging operations."""
     def __init__(self):
         self.log = []
 
     def append(self, text):
-        print(text)
+        """Append text to console log."""
+        print(text)  # Python 3 handles unicode natively
         self.log.append(text)
 
 
@@ -133,7 +140,9 @@ class Application(tk.Frame):
         if self.var_3d.get():
             stereo = "top-bottom"
 
-        metadata = metadata_utils.Metadata()
+        # Use V2 metadata for YouTube compatibility
+        metadata = metadata_utils.Metadata(projection="equirectangular", stereo_mode=stereo)
+        # Also include V1 for backward compatibility with older players
         metadata.video = metadata_utils.generate_spherical_xml(stereo=stereo)
 
         if self.var_spatial_audio.get():
@@ -355,15 +364,15 @@ def report_callback_exception(self, *args):
 
 
 def main():
+    """Initialize and run the Spatial Media GUI application."""
     root = tk.Tk()
     
-    # Platform-specific optimizations
-    if platform.system() == "Darwin":  # macOS
+    # Optimize scaling for macOS (especially M series with Retina displays)
+    if platform.system() == "Darwin":
+        # Let macOS handle scaling naturally for Retina displays
         try:
-            # Optimize scaling for macOS (including Retina displays)
+            # Get the actual screen scaling
             root.tk.call('tk', 'scaling', 1.4)
-            # Use native macOS appearance
-            root.tk.call('tk::mac::useThemedToplevel', 1)
         except:
             pass
     else:
@@ -374,6 +383,15 @@ def main():
     app_window.resizable(False, False)
     app_window.protocol("WM_DELETE_WINDOW", root.destroy)
     tk.report_callback_exception = report_callback_exception
+    
+    # macOS specific optimizations
+    if platform.system() == "Darwin":
+        try:
+            # Enable native macOS appearance
+            app_window.tk.call('tk::mac::useThemedToplevel', 1)
+        except:
+            pass
+    
     Application(master=app_window)
     root.mainloop()
 

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Copyright 2016 Google Inc. All rights reserved.
@@ -14,6 +14,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+"""Spatial Media Metadata Tools
+
+Tools for examining and injecting spatial media metadata in MP4/MOV files.
+Modernized for Python 3 and macOS Apple Silicon (M series).
+"""
+
+__version__ = "2.1.0"
+__author__ = "Google Inc."
+__license__ = "Apache License 2.0"
+__python_requires__ = ">=3.8"
 
 # Ensure the package is available on the current path or is installed.
 import os

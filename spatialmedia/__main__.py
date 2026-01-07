@@ -29,6 +29,11 @@ path = os.path.join(path, '..')
 sys.path.insert(0, path)
 from spatialmedia import metadata_utils
 
+try:
+    from spatialmedia import __version__
+except ImportError:
+    __version__ = "2.1.0"
+
 
 def console(contents):
   print(contents)
@@ -40,7 +45,12 @@ def main(main_args):
   parser = argparse.ArgumentParser(
       usage=
       "%(prog)s [options] [files...]\n\nBy default prints out spatial media "
-      "metadata from specified files.")
+      "metadata from specified files.",
+      description="Spatial Media Metadata Tools - Examine and inject 360° video and spatial audio metadata")
+  parser.add_argument(
+      "--version",
+      action="version",
+      version=f"Spatial Media Tools v{__version__} (Python 3)")
   parser.add_argument(
       "-i",
       "--inject",

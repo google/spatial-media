@@ -6,26 +6,52 @@ A tool for manipulating spatial media
 It can be used to inject spatial media metadata into a file or validate metadata
 in an existing file.
 
+**Now fully compatible with Python 3 and macOS Apple Silicon (M series)!**
+
+## Requirements
+
+- Python 3.8 or higher
+- For macOS M series: Python installed via pyenv with tcl-tk@8 support (see [setup guide](../SETUP_MAC_M_SERIES.md))
+
 ## Usage
 
-[Python 2.7](https://www.python.org/downloads/) must be used to run the tool.
-From within the directory above `spatialmedia`:
+### GUI Application
+
+Run the graphical interface:
+
+```bash
+python spatialmedia/gui.py
+```
+
+Or if installed as a package:
+
+```bash
+spatialmedia-gui
+```
+
+### Command Line Interface
 
 #### Help
 
-    python spatialmedia -h
+```bash
+python -m spatialmedia -h
+```
 
 Prints help and usage information.
 
 #### Examine
 
-    python spatialmedia <files...>
+```bash
+python -m spatialmedia <files...>
+```
 
 For each file specified, prints spatial media metadata contained in the file.
 
 #### Inject
 
-    python spatialmedia -i [--stereo=(none|top-bottom|left-right)] [--spatial-audio] <input> <output>
+```bash
+python -m spatialmedia -i [--stereo=(none|top-bottom|left-right)] [--spatial-audio] <input> <output>
+```
 
 Saves a version of `<input>` injected with spatial media metadata to `<output>`.
 `<input>` and `<output>` must not be the same file.
@@ -38,12 +64,8 @@ Selects the left/right eye frame layout; see the `StereoMode` element in the
 Options:
 
 - `none`: Mono frame layout.
-
-- `top-bottom`: Top half contains the left eye and bottom half contains the
-right eye.
-
-- `left-right`: Left half contains the left eye and right half contains the
-right eye.
+- `top-bottom`: Top half contains the left eye and bottom half contains the right eye.
+- `left-right`: Left half contains the left eye and right half contains the right eye.
 
 ##### --spatial-audio
 
@@ -52,9 +74,27 @@ Enables injection of spatial audio metadata. If enabled, the file must contain a
 normalization; see the [Spatial Audio RFC](../docs/spatial-audio-rfc.md) for
 more information.
 
-## Building standalone GUI application
+## Building Standalone Application
 
-Install [PyInstaller](http://pythonhosted.org/PyInstaller/), then run the
-following:
+### macOS (including Apple Silicon M series)
 
-    pyinstaller spatial_media_metadata_injector.spec
+```bash
+./build_macos_app.sh
+```
+
+This creates a `.app` bundle in the `dist/` directory that can be moved to your Applications folder.
+
+### Manual Build
+
+Install [PyInstaller](https://pyinstaller.org/), then run:
+
+```bash
+pip install -r requirements.txt
+python build_executables.py
+```
+
+Or directly with PyInstaller:
+
+```bash
+pyinstaller spatialmedia/spatial_media_metadata_injector.spec
+```
