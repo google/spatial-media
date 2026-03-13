@@ -50,7 +50,9 @@ def upload_files():
         if file.filename == '':
             continue
         
-        filename = secure_filename(file.filename)
+        # Ensure we replace Windows paths with Linux paths before secure_filename
+        # because on Linux, secure_filename does not strip backslashes by default.
+        filename = secure_filename(file.filename.replace('\\', '/'))
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
@@ -93,7 +95,7 @@ def inject_metadata():
     results = []
     
     for raw_filename in files_to_process:
-        filename = secure_filename(raw_filename)
+        filename = secure_filename(raw_filename.replace('\\', '/'))
         input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         output_filename = f"injected_{filename}"
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
@@ -130,7 +132,7 @@ def inject_metadata():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    secure_name = secure_filename(filename)
+    secure_name = secure_filename(filename.replace('\\', '/'))
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], secure_name), as_attachment=True)
 
 if __name__ == '__main__':
