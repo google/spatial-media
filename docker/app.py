@@ -3,6 +3,7 @@ import sys
 import tempfile
 import zipfile
 import shutil
+from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, send_file, jsonify, after_this_request
 
 # Ensure we can import spatialmedia
@@ -49,7 +50,7 @@ def upload_files():
         if file.filename == '':
             continue
         
-        filename = file.filename
+        filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
@@ -91,7 +92,8 @@ def inject_metadata():
     
     results = []
     
-    for filename in files_to_process:
+    for raw_filename in files_to_process:
+        filename = secure_filename(raw_filename)
         input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         output_filename = f"injected_{filename}"
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
@@ -128,7 +130,8 @@ def inject_metadata():
 
 @app.route('/download/<filename>')
 def download_file(filename):
-    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], filename), as_attachment=True)
+    secure_name = secure_filename(filename)
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'], secure_name), as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
