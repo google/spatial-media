@@ -50,9 +50,12 @@ def upload_files():
         if file.filename == '':
             continue
         
-        # Ensure we replace Windows paths with Linux paths before secure_filename
-        # because on Linux, secure_filename does not strip backslashes by default.
-        filename = secure_filename(file.filename.replace('\\', '/'))
+        # Reject files that contain directory separators or '..'
+        normalized_filename = file.filename.replace('\\', '/')
+        if '/' in normalized_filename or '..' in normalized_filename:
+            return jsonify({'error': f'Invalid filename detected: {file.filename}'}), 400
+            
+        filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         
@@ -95,7 +98,17 @@ def inject_metadata():
     results = []
     
     for raw_filename in files_to_process:
-        filename = secure_filename(raw_filename.replace('\\', '/'))
+        normalized_filename = raw_filename.replace('\\', '/')
+        if '/' in normalized_filename or '..' in normalized_filename:
+            results.append({
+                'filename': raw_filename,
+                'error': 'Invalid filename detected',
+                'logs': ['Rejected due to unsafe filename path.'],
+                'success': False
+            })
+            continue
+
+        filename = secure_filename(raw_filename)
         input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         output_filename = f"injected_{filename}"
         output_path = os.path.join(app.config['UPLOAD_FOLDER'], output_filename)
@@ -130,9 +143,13 @@ def inject_metadata():
 
     return jsonify({'results': results})
 
-@app.route('/download/<filename>')
+@app.route('/download/<path:filename>')
 def download_file(filename):
-    secure_name = secure_filename(filename.replace('\\', '/'))
+    normalized_filename = filename.replace('\\', '/')
+    if '/' in normalized_filename or '..' in normalized_filename:
+        return "Invalid file path", 400
+        
+    secure_name = secure_filename(filename)
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'], secure_name), as_attachment=True)
 
 if __name__ == '__main__':
