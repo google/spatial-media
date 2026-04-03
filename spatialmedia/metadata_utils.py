@@ -243,6 +243,8 @@ def inject_spatial_video_v2_atoms(in_fh, video_media_atom, projection, stereo_mo
                             sample_description.add(st3d_atom)
 
                         if projection:
+                            svhd_atom = mpeg.sv3d.SVHDBox.create()
+
                             proj_atom = mpeg.container.Container(header_size=8)
                             proj_atom.name = mpeg.constants.TAG_PROJ
 
@@ -252,6 +254,7 @@ def inject_spatial_video_v2_atoms(in_fh, video_media_atom, projection, stereo_mo
                             sv3d_atom = mpeg.container.Container(header_size=8)
                             sv3d_atom.name = mpeg.constants.TAG_SV3D
 
+                            sv3d_atom.add(svhd_atom)
                             sv3d_atom.add(proj_atom)
 
                             sample_description.remove(sv3d_atom.name)
