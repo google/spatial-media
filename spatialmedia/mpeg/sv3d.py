@@ -29,7 +29,8 @@ from spatialmedia.mpeg import constants
 
 def is_supported_box_name(name):
     """Returns true if the box name is a supported sv3d box."""
-    return (name == constants.TAG_PRHD or
+    return (name == constants.TAG_SVHD or
+            name == constants.TAG_PRHD or
             name == constants.TAG_EQUI or
             name == constants.TAG_ST3D)
 
@@ -51,7 +52,9 @@ def load(fh, position=None, end=None):
     size = struct.unpack(">I", fh.read(4))[0]
     name = fh.read(4)
 
-    if name == constants.TAG_PRHD:
+    if name == constants.TAG_SVHD:
+        box = SVHDBox()
+    elif name == constants.TAG_PRHD:
         box = PRHDBox()
     elif name == constants.TAG_EQUI:
         box = EQUIBox()
@@ -65,6 +68,49 @@ def load(fh, position=None, end=None):
     box.content_size = size - box.header_size
     box.load_content(fh)
     return box
+
+
+class SVHDBox(box.Box):
+    """Spherical Video Header (svhd) FullBox; mandatory first child of sv3d per v2 RFC."""
+
+    def __init__(self, metadata_source="Spherical Metadata Tool"):
+        box.Box.__init__(self)
+        self.name = constants.TAG_SVHD
+        self.header_size = 8
+        self.metadata_source = metadata_source
+        self.content_size = 4 + len(self._metadata_source_bytes()) + 1
+
+    def _metadata_source_bytes(self):
+        return self.metadata_source.encode("utf-8")
+
+    @staticmethod
+    def create(metadata_source="Spherical Metadata Tool"):
+        return SVHDBox(metadata_source=metadata_source)
+
+    def print_box(self, console):
+        """Prints the contents of this box to console."""
+        console("\t\t\tSVHD {")
+        console("\t\t\t\tMetadata Source: %s" % self.metadata_source)
+        console("\t\t\t}")
+
+    def save(self, in_fh, out_fh, delta):
+        if self.header_size == 16:
+            out_fh.write(struct.pack(">I", 1))
+            out_fh.write(struct.pack(">Q", self.size()))
+            out_fh.write(self.name)
+        elif self.header_size == 8:
+            out_fh.write(struct.pack(">I", self.size()))
+            out_fh.write(self.name)
+        out_fh.write(struct.pack(">I", 0))  # Version and flags
+        out_fh.write(self._metadata_source_bytes() + b"\0")
+
+    def load_content(self, in_fh):
+        in_fh.read(4)  # Version and flags
+        raw = in_fh.read(self.content_size - 4)
+        if raw.endswith(b"\0"):
+            raw = raw[:-1]
+        self.metadata_source = raw.decode("utf-8")
+        self.content_size = 4 + len(self._metadata_source_bytes()) + 1
 
 
 class PRHDBox(box.Box):

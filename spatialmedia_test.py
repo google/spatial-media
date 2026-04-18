@@ -67,6 +67,9 @@ class TestAdd(unittest.TestCase):
                                          'data/testsrc_320x240_h264.mp4',
                                          f'{_OUTPUT_DIR}/equirect_mono.mp4'])
         self.assertTrue(contents.find('SV3D') >= 0)
+        self.assertTrue(contents.find('SVHD') >= 0)
+        self.assertTrue(
+            contents.find('Spherical Metadata Tool') >= 0)
         self.assertTrue(contents.find('PRHD') >= 0)
         self.assertTrue(contents.find('EQUI') >= 0)
         self.assertFalse(contents.find('ST3D') >= 0)
@@ -83,6 +86,9 @@ class TestAdd(unittest.TestCase):
                                          'data/testsrc_320x240_h264.mp4',
                                          f'{_OUTPUT_DIR}/equirect_mono.mp4'])
         self.assertTrue(contents.find('SV3D') >= 0)
+        self.assertTrue(contents.find('SVHD') >= 0)
+        self.assertTrue(
+            contents.find('Spherical Metadata Tool') >= 0)
         self.assertTrue(contents.find('PRHD') >= 0)
         self.assertTrue(contents.find('EQUI') >= 0)
         self.assertFalse(contents.find('ST3D') >= 0)
@@ -98,6 +104,9 @@ class TestAdd(unittest.TestCase):
                                          f'{_OUTPUT_DIR}/equirect_mono_vp9.mp4'])
 
         self.assertTrue(contents.find('SV3D') >= 0)
+        self.assertTrue(contents.find('SVHD') >= 0)
+        self.assertTrue(
+            contents.find('Spherical Metadata Tool') >= 0)
         self.assertTrue(contents.find('PRHD') >= 0)
         self.assertTrue(contents.find('EQUI') >= 0)
         self.assertFalse(contents.find('ST3D') >= 0)
@@ -108,6 +117,9 @@ class TestAdd(unittest.TestCase):
                                          'data/testsrc_32x24_prores.mov',
                                          f'{_OUTPUT_DIR}/equirect_mono_prores.mov'])
         self.assertTrue(contents.find('SV3D') >= 0)
+        self.assertTrue(contents.find('SVHD') >= 0)
+        self.assertTrue(
+            contents.find('Spherical Metadata Tool') >= 0)
         self.assertTrue(contents.find('PRHD') >= 0)
         self.assertTrue(contents.find('EQUI') >= 0)
         self.assertFalse(contents.find('ST3D') >= 0)
