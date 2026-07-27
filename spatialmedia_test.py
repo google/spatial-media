@@ -151,6 +151,18 @@ class TestAdd(unittest.TestCase):
         self.assertTrue(contents.find('Stereo Mode: 1') >= 0)
 
 
+class TestGenerateSphericalXml(unittest.TestCase):
+    def test_default_projection_is_equirectangular(self):
+        """Default projection must match the equirectangular comparison string."""
+        xml = metadata_utils.generate_spherical_xml()
+        self.assertIn('equirectangular', xml)
+        self.assertIn('<GSpherical:Spherical>true</GSpherical:Spherical>', xml)
+
+    def test_none_projection_is_not_spherical(self):
+        xml = metadata_utils.generate_spherical_xml(projection='none')
+        self.assertNotIn('equirectangular', xml)
+        self.assertIn('<GSpherical:Spherical>false</GSpherical:Spherical>', xml)
+
 if __name__ == '__main__':
     try:
         os.mkdir('test_output')
