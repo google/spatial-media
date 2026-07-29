@@ -155,7 +155,7 @@ def index_copy(in_fh, out_fh, box, mode, mode_length, delta=0):
       out_fh: file handle, destination for index file.
       box: box, stco/co64 box to copy.
       mode: string, bit packing mode for index entries.
-      mode_length: int, number of bytes for index entires.
+      mode_length: int, number of bytes for index entries.
       delta: int, offset change for index entries.
     """
     fh = in_fh
